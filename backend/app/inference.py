@@ -19,6 +19,7 @@ import numpy as np
 
 logger = logging.getLogger("agriscan.inference")
 
+PREPROCESSING_VERSION = "rgb-bilinear-v1"
 PREPROCESSING_SUMMARY = "RGB, redimensionnement bilinéaire, pixels float32 [0, 255] ; mise à l'échelle dans le modèle"
 
 

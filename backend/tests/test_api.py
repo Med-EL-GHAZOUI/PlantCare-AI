@@ -40,7 +40,7 @@ def test_model_info_matches_trained_mapping(client) -> None:
 
 
 def test_without_model_health_ok_but_not_loaded_and_inference_503(tmp_path) -> None:
-    app = create_app(Settings(model_dir=tmp_path / "absent"))
+    app = create_app(Settings(_env_file=None, model_dir=tmp_path / "absent"))
     with TestClient(app) as no_model_client:
         assert no_model_client.get("/api/v1/health").json() == {"status": "ok", "model_loaded": False}
         assert_error(no_model_client.get("/api/v1/model/info"), 503, "model_unavailable")
@@ -148,7 +148,7 @@ def test_internal_error_leaks_nothing(model_service) -> None:
         def predict(self, _):
             raise RuntimeError("secret C:\\internal\\path.py")
 
-    app = create_app(Settings(), model_service=Exploding())
+    app = create_app(Settings(_env_file=None), model_service=Exploding())
     with TestClient(app, raise_server_exceptions=False) as failing_client:
         response = post_image(failing_client, image_bytes())
     assert_error(response, 500, "internal_error")

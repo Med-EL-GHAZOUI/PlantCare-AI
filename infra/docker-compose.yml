@@ -1,0 +1,22 @@
+# PostgreSQL de DÉVELOPPEMENT uniquement. Les identifiants viennent de infra/.env (non versionné).
+# Depuis infra/ :  docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?définir POSTGRES_USER dans infra/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD dans infra/.env}
+      POSTGRES_DB: ${POSTGRES_DB:-agriscan}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"   # accessible uniquement depuis cette machine
+    volumes:
+      - agriscan_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  agriscan_pgdata:
