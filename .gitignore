@@ -1,0 +1,37 @@
+# Éditeur / notes
+.obsidian/
+.vscode/
+.idea/
+
+# Secrets et environnement
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ML (données et modèles volumineux)
+ml/data/
+*.h5
+*.keras
+*.ckpt
+
+# Flutter / Dart
+.dart_tool/
+build/
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+
+# OS
+.DS_Store
+Thumbs.db
