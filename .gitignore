@@ -39,3 +39,6 @@ Thumbs.db
 
 # Artefacts d'entraînement
 ml/artifacts/
+
+# Données du serveur de développement local (comptes, base embarquée, secret JWT)
+backend/.devdata/

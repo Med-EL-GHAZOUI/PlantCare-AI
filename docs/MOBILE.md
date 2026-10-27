@@ -59,6 +59,53 @@ flutter run -d <appareil> --dart-define=API_BASE_URL=http://10.0.2.2:8000
 - Démarrer l'API avant : `backend/` → `.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000`. Les comptes et l'historique exigent en plus `AGRISCAN_DATABASE_URL` (PostgreSQL migré avec Alembic) et `AGRISCAN_JWT_SECRET` (voir `docs/DATABASE.md`) ; sans eux l'application fonctionne en mode anonyme et affiche « comptes indisponibles ».
 - Tests : `flutter test` (121 tests) ; analyse : `flutter analyze` ; intégration sur émulateur : `flutter test integration_test -d <id> --dart-define=API_BASE_URL=http://10.0.2.2:8000` (l'API doit tourner avec sa base ; le test crée puis supprime son propre compte).
 
+## 4 bis. Essai manuel sur un téléphone Android avec l'API du PC
+
+Aucune clé ni compte externe à créer : la base PostgreSQL est embarquée et le secret des jetons est généré automatiquement dans `backend/.devdata/` (ignoré par Git). Le HTTP en clair n'est autorisé que par les builds **debug** de l'application.
+
+**1. Préparer le téléphone (une fois)** : Paramètres → À propos du téléphone → toucher 7 fois « Numéro de build » → Options pour les développeurs → activer « Débogage USB » ; brancher en USB et accepter l'empreinte du PC. Vérifier : `adb devices` (dossier `%LOCALAPPDATA%\Android\Sdk\platform-tools`) doit lister l'appareil, puis `flutter devices`.
+
+**2. Lancer l'API de développement** (terminal 1, depuis `backend/`, laisser ouvert) :
+
+```powershell
+.\.venv\Scripts\python.exe scripts/dev_server.py
+```
+
+Attendre la ligne « API de développement : http://127.0.0.1:8000 ». Les comptes et analyses sont conservés dans `backend/.devdata/` entre deux lancements ; arrêter avec **Ctrl+C** (un arrêt brutal laisse des processus `postgres` orphelins, sans gravité, la reprise suivante fonctionne). Pour tout effacer : arrêter le script, supprimer `backend/.devdata/`.
+
+**3a. Option recommandée : USB + `adb reverse`** (aucun réglage de réseau ni de pare-feu ; le trafic reste sur le câble) :
+
+```powershell
+adb reverse tcp:8000 tcp:8000
+cd mobile
+flutter run -d <id de l'appareil> --dart-define=API_BASE_URL=http://127.0.0.1:8000
+```
+
+À refaire si le câble est débranché (`adb reverse` est effacé).
+
+**3b. Option Wi-Fi (sans câble)** : démarrer l'API avec `scripts/dev_server.py --host 0.0.0.0` et utiliser l'adresse IP Wi-Fi du PC (`ipconfig`, carte « Wi-Fi » ; ignorer les cartes VMware ; sur ce PC : `192.168.1.106`, à revérifier). Le PC et le téléphone doivent être sur le **même réseau** (pas de réseau « invité » isolé). Le profil réseau du PC est « Public » : le pare-feu Windows bloque les connexions entrantes. Ouvrir le port 8000 **vous-même**, dans une console PowerShell administrateur, limité au réseau local, puis le refermer après l'essai :
+
+```powershell
+New-NetFirewallRule -DisplayName "AgriScan dev 8000" -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow -RemoteAddress LocalSubnet -Profile Any
+Remove-NetFirewallRule -DisplayName "AgriScan dev 8000"   # à exécuter après l'essai
+```
+
+Contrôler d'abord depuis le navigateur du téléphone : `http://192.168.1.106:8000/api/v1/health` doit afficher `{"status":"ok","model_loaded":true}`. Puis : `flutter run -d <id> --dart-define=API_BASE_URL=http://192.168.1.106:8000`. À éviter sur un Wi-Fi public ou partagé : le trafic est en clair et l'API de développement n'a ni HTTPS ni limitation de débit globale.
+
+**4. Scénarios à essayer** (cocher au fur et à mesure) :
+
+- [ ] Prendre une vraie photo de feuille de tomate (caméra) ; accepter la demande d'autorisation ; un résultat ou « incertain » s'affiche avec les limites.
+- [ ] Choisir une photo dans la galerie ; essayer aussi une photo hors sujet (le modèle ne la détecte pas comme telle : noter ce qu'il répond).
+- [ ] Refuser l'autorisation de la caméra : message « Impossible d'accéder à la caméra… ».
+- [ ] Créer un compte, refermer complètement l'application, la rouvrir : la session est reprise (menu compte).
+- [ ] Faire une analyse connecté : la note « enregistré dans votre historique » apparaît ; l'analyse figure dans l'historique, avec son détail.
+- [ ] Couper le Wi-Fi/arrêter l'API pendant une analyse : message réseau puis « Réessayer » après rétablissement.
+- [ ] Passer l'application en arabe : sens de lecture inversé, textes lisibles, pas de coupure de mots.
+- [ ] Supprimer une analyse, puis le compte ; vérifier que la connexion est ensuite refusée.
+- [ ] Relever la durée d'une analyse (photo → résultat) et noter la qualité de l'appareil photo, la lumière, le fond.
+
+**5. Dépannage** : « Impossible de joindre le serveur » → vérifier `adb reverse` (3a) ou l'IP, le pare-feu et le Wi-Fi (3b) ; « comptes indisponibles » → l'API a été lancée sans base (utiliser `scripts/dev_server.py`, pas `uvicorn` seul) ; photo refusée → seuls JPEG et PNG de 5 Mo maximum sont acceptés (les photos du téléphone sont réduites à 1024 px avant l'envoi) ; session perdue après 30 minutes → normal (jeton de 30 minutes, reconnexion demandée).
+
 ## 5. Résultats réels
 
 - `flutter analyze` : aucun problème. `flutter test` : **121 tests réussis** (contrôleurs, clients HTTP simulés, widgets FR/AR, traductions).
