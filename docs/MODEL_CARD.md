@@ -32,6 +32,18 @@ Documenter après implémentation :
 
 Le service d'inférence doit réutiliser le même prétraitement que le modèle d'entraînement.
 
+### Prétraitement implémenté (baseline, code dans `ml/agriscan_ml/`)
+
+- Décodage JPEG/PNG en **RGB** (3 canaux), redimensionnement **bilinéaire** en **128×128** (`PreprocessConfig`), sortie float32 dans [0, 255].
+- La division par 255 est faite **dans le modèle** (couche `Rescaling`) : l'inférence n'a donc qu'à décoder et redimensionner.
+- Mapping des labels : indices attribués par ordre alphabétique des 10 classes présentes dans `train.csv` ; sauvegardé dans `class_names.json` à l'entraînement.
+- Augmentation (**entraînement uniquement**) : flips horizontal/vertical, rotation ±0,1 tour, zoom 0,1, luminosité 0,1, contraste 0,1 (`AugmentationConfig`). Validation et test : aucune transformation aléatoire (vérifié par tests).
+- Déséquilibre : poids de classes `n / (K × n_classe)` calculés sur l'entraînement seulement.
+
+## 5 bis. Baseline CNN (non entraînée à ce jour)
+
+3 blocs Conv2D(16/32/64, 3×3)+MaxPooling, GlobalAveragePooling, Dropout 0,3, Dense softmax ; 24 234 paramètres, entraîné de zéro, Adam 1e-3, graine 42, arrêt anticipé sur `val_loss`. Les scores softmax ne sont pas calibrés. **Aucune métrique n'existe encore** : la section 6 reste vide tant qu'aucun entraînement réel n'a eu lieu.
+
 ## 5. Entraînement
 
 Consigner :
