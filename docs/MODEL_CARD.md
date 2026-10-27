@@ -176,6 +176,24 @@ Coût par classe à 0,69 (couverture de chaque classe) : early blight 0,787 (la 
 
 Limites : (1) la validation a servi à l'arrêt anticipé et au choix du seuil, donc la précision sélective annoncée est légèrement optimiste ; elle doit être **confirmée une fois sur le test** avant de la citer comme résultat final, et sur des images de terrain. (2) Le score softmax n'est pas calibré (aucune évaluation de calibration) : le seuil est un point de fonctionnement empirique, pas une probabilité de 80 %. (3) Ce seuil ne détecte **pas** les images hors périmètre : une photo qui n'est pas une feuille de tomate peut obtenir un score élevé. (4) Il filtre des cas incertains sur PlantVillage, pas nécessairement sur des photos de terrain.
 
+#### Confirmation sur le **test** du seuil 0,80 (2026-10-27)
+
+Seuil fixé a priori sur la validation, évalué **une seule fois** sur `test.csv` (2 721 images) avec `ml/scripts/evaluate_threshold.py --threshold 0.80 --final` (le script refuse de s'exécuter sans `--final` et de se relancer une fois `threshold_test.json` écrit). Modèle inchangé (SHA-256 débutant par `10a733ad75f033ea`) ; seuil non modifié après lecture des résultats.
+
+| Mesure (test, seuil 0,80) | Valeur | Validation (pour comparaison) |
+|---|---|---|
+| Accuracy sans seuil | 0,9449 (150 erreurs) | 0,9391 |
+| Couverture | **0,8945** (2 434 répondues, 287 incertaines) | 0,887 |
+| Précision sélective | **0,9778** [IC 95 % 0,971 ; 0,983] | 0,9806 |
+| Erreurs parmi les images répondues | 54 | 47 |
+| Parmi les 287 incertaines | 96 erreurs (accuracy 0,6655) | — |
+
+Le seuil écarte 96 des 150 erreurs (64 %) en rejetant 10,5 % des images ; les résultats test sont cohérents avec la validation (précision sélective un peu plus basse : 0,978 contre 0,981, dans l'intervalle de confiance).
+
+Couverture par classe sur le test : healthy 0,987 ; yellow leaf curl virus 0,966 ; bacterial spot 0,893 ; late blight 0,888 ; target spot 0,862 ; spider mites 0,857 ; leaf mold 0,860 ; mosaic virus 0,839 ; septoria 0,830 ; **early blight 0,653** (52 images sur 150 déclarées incertaines). Early blight est donc la classe la plus pénalisée : pour cette maladie, l'application répondra « incertain » environ une fois sur trois.
+
+Réserves inchangées : une seule exécution, PlantVillage uniquement, pas de calibration, aucune détection hors périmètre (un score élevé n'implique pas une feuille de tomate), et pas de preuve sur photos de terrain. Le test est désormais consommé pour ce choix : tout nouveau réglage devra être validé sur de nouvelles données.
+
 Activation dans l'API : `AGRISCAN_CONFIDENCE_THRESHOLD=0.80` (désactivé par défaut tant que le choix n'est pas validé).
 
 Lecture prudente : ces chiffres proviennent d'une seule exécution, de la validation PlantVillage (conditions contrôlées, fuite résiduelle possible, voir DATASET_CARD) et d'un modèle volontairement simple. Ils ne mesurent pas la performance sur des photos de terrain. Les rangs de confusion servent de point de départ pour comparer MobileNetV2. Précision/rappel/F1 test, latence et calibration restent « À mesurer ».
