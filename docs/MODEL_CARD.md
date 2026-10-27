@@ -125,6 +125,32 @@ Principales confusions restantes : early blight pris pour target spot (17 sur 15
 
 Précautions : une seule exécution, validation PlantVillage uniquement (fond uniforme, fuite résiduelle possible), aucun intervalle de confiance. La validation a servi à l'arrêt anticipé ; le choix final du modèle doit donc être confirmé sur le **test**, qui n'a pas été utilisé. Non mesuré : performance sur photos de terrain, latence, calibration.
 
+### MobileNetV2 — évaluation finale sur le **test** (2026-10-27)
+
+Évaluation unique (`scripts/evaluate.py --split test --final`) sur `test.csv` (2 721 images), après le choix du modèle sur la validation. Le modèle (`model.keras`, SHA-256 débutant par `10a733ad75f033ea`, identique avant et après l'évaluation) n'a pas été modifié ni ré-entraîné ensuite ; aucun réglage n'a été fait à partir de ces résultats.
+
+| Métrique (test) | Résultat |
+|---|---|
+| Accuracy | **0,9449** |
+| Macro-F1 | **0,9325** |
+
+| Classe | Précision | Rappel | F1 | Support |
+|---|---|---|---|---|
+| Bacterial spot | 0,939 | 0,962 | 0,950 | 319 |
+| Early blight | 0,940 | 0,727 | 0,820 | 150 |
+| Late blight | 0,935 | 0,955 | 0,945 | 286 |
+| Leaf Mold | 0,958 | 0,958 | 0,958 | 143 |
+| Septoria leaf spot | 0,925 | 0,932 | 0,929 | 265 |
+| Spider mites | 0,928 | 0,920 | 0,924 | 251 |
+| Target Spot | 0,806 | 0,948 | 0,871 | 210 |
+| Yellow Leaf Curl Virus | 0,994 | 0,970 | 0,982 | 803 |
+| Mosaic virus | 0,981 | 0,946 | 0,964 | 56 |
+| healthy | 0,975 | 0,992 | 0,983 | 238 |
+
+Confusions principales : early blight pris pour target spot (14 sur 150) ou late blight (11) ; spider mites pris pour target spot (16 sur 251) ; yellow leaf curl virus pris pour bacterial spot (12 sur 803). Matrice complète : `ml/artifacts/mobilenetv2/confusion_test.csv` (non versionnée). Les résultats test sont cohérents avec la validation (0,9391 / 0,9211), sans écart suspect.
+
+Limites : une seule exécution et un seul découpage, sans intervalle de confiance ; les classes à faible effectif (mosaic virus : 56 images) donnent des estimations bruitées. Le test provient de PlantVillage (même distribution que l'entraînement, fuite résiduelle possible entre photos d'une même feuille, voir DATASET_CARD) : **ces scores ne prouvent pas la performance sur des photos de terrain**, qui reste à mesurer avec des images indépendantes. Latence et calibration : non mesurées.
+
 Lecture prudente : ces chiffres proviennent d'une seule exécution, de la validation PlantVillage (conditions contrôlées, fuite résiduelle possible, voir DATASET_CARD) et d'un modèle volontairement simple. Ils ne mesurent pas la performance sur des photos de terrain. Les rangs de confusion servent de point de départ pour comparer MobileNetV2. Précision/rappel/F1 test, latence et calibration restent « À mesurer ».
 
 ## 7. Incertitude et limites
