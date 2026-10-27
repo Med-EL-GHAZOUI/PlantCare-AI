@@ -71,6 +71,32 @@ Consigner :
 
 Ne pas remplacer « À mesurer » par des valeurs estimées ou inventées.
 
+### Baseline CNN — résultats sur la **validation** (2026-10-27)
+
+Entraînement réel sur CPU Windows (`scripts/train_baseline.py --train`, graine 42, 15 époques maximum) : arrêt anticipé après 14 époques, poids restaurés à la meilleure `val_loss` (0,675, époque 11). Évaluation avec `scripts/evaluate.py` sur `val.csv` (2 727 images). Le **jeu de test n'a pas été utilisé** (le script le verrouille derrière `--final`).
+
+| Métrique (validation) | Résultat |
+|---|---|
+| Accuracy | 0,7825 |
+| Macro-F1 | 0,7450 |
+
+| Classe | Précision | Rappel | F1 | Support |
+|---|---|---|---|---|
+| Bacterial spot | 0,820 | 0,812 | 0,816 | 319 |
+| Early blight | 0,694 | 0,500 | 0,581 | 150 |
+| Late blight | 0,864 | 0,686 | 0,765 | 287 |
+| Leaf Mold | 0,767 | 0,713 | 0,739 | 143 |
+| Septoria leaf spot | 0,897 | 0,624 | 0,736 | 266 |
+| Spider mites | 0,544 | 0,742 | 0,628 | 252 |
+| Target Spot | 0,583 | 0,768 | 0,663 | 211 |
+| Yellow Leaf Curl Virus | 0,952 | 0,866 | 0,907 | 804 |
+| Mosaic virus | 0,643 | 0,964 | 0,771 | 56 |
+| healthy | 0,738 | 0,987 | 0,844 | 239 |
+
+Confusions principales (matrice complète : `artifacts/baseline/confusion_val.csv`, non versionnée) : early blight pris pour target spot (35 sur 150) ; late blight pris pour spider mites (37) ; yellow leaf curl virus pris pour spider mites (69) ou bacterial spot (32) ; target spot pris pour healthy (38).
+
+Lecture prudente : ces chiffres proviennent d'une seule exécution, de la validation PlantVillage (conditions contrôlées, fuite résiduelle possible, voir DATASET_CARD) et d'un modèle volontairement simple. Ils ne mesurent pas la performance sur des photos de terrain. Les rangs de confusion servent de point de départ pour comparer MobileNetV2. Précision/rappel/F1 test, latence et calibration restent « À mesurer ».
+
 ## 7. Incertitude et limites
 
 Le score de sortie du modèle peut ne pas être une probabilité calibrée. Tout seuil d'incertitude doit être choisi à partir des données de validation et évalué.
