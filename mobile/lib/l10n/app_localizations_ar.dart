@@ -160,4 +160,147 @@ class AppLocalizationsAr extends AppLocalizations {
   String classUnknown(String name) {
     return 'فئة غير معروفة ($name)';
   }
+
+  @override
+  String get account => 'الحساب';
+
+  @override
+  String get signIn => 'تسجيل الدخول';
+
+  @override
+  String get register => 'إنشاء حساب';
+
+  @override
+  String get signOut => 'تسجيل الخروج';
+
+  @override
+  String get history => 'السجل';
+
+  @override
+  String get email => 'البريد الإلكتروني';
+
+  @override
+  String get password => 'كلمة المرور';
+
+  @override
+  String get passwordHint => '10 أحرف على الأقل';
+
+  @override
+  String get signInTitle => 'تسجيل الدخول';
+
+  @override
+  String get registerTitle => 'إنشاء حساب';
+
+  @override
+  String get switchToRegister => 'ليس لديك حساب؟ أنشئ حسابًا';
+
+  @override
+  String get switchToSignIn => 'لديك حساب؟ سجّل الدخول';
+
+  @override
+  String signedInAs(String email) {
+    return 'مسجَّل الدخول: $email';
+  }
+
+  @override
+  String get signedInUnknown => 'مسجَّل الدخول';
+
+  @override
+  String get signInToSaveHint => 'سجّل الدخول للاحتفاظ بتحليلاتك في السجل.';
+
+  @override
+  String get savedToHistory =>
+      'تم حفظ النتيجة في سجلك (لا يتم الاحتفاظ بالصورة).';
+
+  @override
+  String get sessionExpired =>
+      'انتهت جلستك. سجّل الدخول من جديد لاستعادة سجلك.';
+
+  @override
+  String get validationEmail => 'أدخل بريدًا إلكترونيًا صالحًا.';
+
+  @override
+  String get validationPassword =>
+      'يجب أن تحتوي كلمة المرور على 10 أحرف على الأقل.';
+
+  @override
+  String get cancel => 'إلغاء';
+
+  @override
+  String get delete => 'حذف';
+
+  @override
+  String get deleteAccount => 'حذف حسابي';
+
+  @override
+  String get deleteAccountTitle => 'حذف حسابك؟';
+
+  @override
+  String get deleteAccountBody =>
+      'سيتم حذف حسابك وجميع تحليلاتك المحفوظة نهائيًا.';
+
+  @override
+  String get historyTitle => 'تحليلاتي';
+
+  @override
+  String get historyEmpty =>
+      'لا توجد تحليلات محفوظة. التحليلات التي تجريها وأنت مسجَّل الدخول تظهر هنا.';
+
+  @override
+  String get historyPrivacy => 'تُحفظ النتائج فقط ولا تُحفظ الصور أبدًا.';
+
+  @override
+  String get historyUncertainItem => 'نتيجة غير مؤكدة';
+
+  @override
+  String get loadMore => 'عرض المزيد';
+
+  @override
+  String get detailTitle => 'تفاصيل التحليل';
+
+  @override
+  String analyzedOn(String date) {
+    return 'تم التحليل في $date';
+  }
+
+  @override
+  String modelVersionLabel(String version) {
+    return 'إصدار النموذج: $version';
+  }
+
+  @override
+  String get deleteAnalysis => 'حذف هذا التحليل';
+
+  @override
+  String get deleteAnalysisTitle => 'حذف هذا التحليل؟';
+
+  @override
+  String get deleteAnalysisBody => 'هذا الإجراء نهائي.';
+
+  @override
+  String get analysisDeleted => 'تم حذف التحليل.';
+
+  @override
+  String get errorUnauthorized => 'لم تعد جلستك صالحة. سجّل الدخول من جديد.';
+
+  @override
+  String get errorInvalidCredentials =>
+      'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+
+  @override
+  String get errorEmailTaken => 'هذا البريد الإلكتروني مستخدم بالفعل.';
+
+  @override
+  String get errorTooManyAttempts =>
+      'محاولات كثيرة. أعد المحاولة بعد بضع دقائق.';
+
+  @override
+  String get errorNotFound =>
+      'تعذّر العثور على هذا التحليل (ربما حُذف سابقًا).';
+
+  @override
+  String get errorInvalidInput => 'المعلومات المدخلة غير صالحة.';
+
+  @override
+  String get errorAccountsUnavailable => 'الحسابات والسجل غير متاحة مؤقتًا.';
 }

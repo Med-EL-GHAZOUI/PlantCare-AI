@@ -12,7 +12,13 @@
   "selectedImage": "Photo sélectionnée",
   "resultTitle": "Résultat du dépistage",
   "modelScore": "Score du modèle : {percent}",
-  "@modelScore": {"placeholders": {"percent": {"type": "String"}}},
+  "@modelScore": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "modelScoreNote": "Ce score n'est pas une probabilité calibrée : il indique seulement la confiance relative du modèle.",
   "otherClassesTitle": "Classes les plus proches",
   "uncertainTitle": "Résultat incertain",
@@ -46,5 +52,75 @@
   "classMosaicVirus": "Virus de la mosaïque de la tomate",
   "classHealthy": "Feuille saine",
   "classUnknown": "Classe inconnue ({name})",
-  "@classUnknown": {"placeholders": {"name": {"type": "String"}}}
+  "@classUnknown": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "account": "Compte",
+  "signIn": "Se connecter",
+  "register": "Créer un compte",
+  "signOut": "Se déconnecter",
+  "history": "Historique",
+  "email": "Adresse e-mail",
+  "password": "Mot de passe",
+  "passwordHint": "10 caractères minimum",
+  "signInTitle": "Connexion",
+  "registerTitle": "Créer un compte",
+  "switchToRegister": "Pas encore de compte ? Créer un compte",
+  "switchToSignIn": "Déjà un compte ? Se connecter",
+  "signedInAs": "Connecté : {email}",
+  "@signedInAs": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "signedInUnknown": "Connecté",
+  "signInToSaveHint": "Connectez-vous pour conserver vos analyses dans l'historique.",
+  "savedToHistory": "Résultat enregistré dans votre historique (la photo n'est pas conservée).",
+  "sessionExpired": "Votre session a expiré. Reconnectez-vous pour retrouver votre historique.",
+  "validationEmail": "Saisissez une adresse e-mail valide.",
+  "validationPassword": "Le mot de passe doit contenir au moins 10 caractères.",
+  "cancel": "Annuler",
+  "delete": "Supprimer",
+  "deleteAccount": "Supprimer mon compte",
+  "deleteAccountTitle": "Supprimer votre compte ?",
+  "deleteAccountBody": "Votre compte et toutes vos analyses enregistrées seront supprimés définitivement.",
+  "historyTitle": "Mes analyses",
+  "historyEmpty": "Aucune analyse enregistrée. Les analyses faites en étant connecté apparaissent ici.",
+  "historyPrivacy": "Seuls les résultats sont conservés, jamais les photos.",
+  "historyUncertainItem": "Résultat incertain",
+  "loadMore": "Charger plus",
+  "detailTitle": "Détail de l'analyse",
+  "analyzedOn": "Analysé le {date}",
+  "@analyzedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "modelVersionLabel": "Version du modèle : {version}",
+  "@modelVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAnalysis": "Supprimer cette analyse",
+  "deleteAnalysisTitle": "Supprimer cette analyse ?",
+  "deleteAnalysisBody": "Cette action est définitive.",
+  "analysisDeleted": "Analyse supprimée.",
+  "errorUnauthorized": "Votre session n'est plus valide. Reconnectez-vous.",
+  "errorInvalidCredentials": "Adresse e-mail ou mot de passe incorrect.",
+  "errorEmailTaken": "Cette adresse e-mail est déjà utilisée.",
+  "errorTooManyAttempts": "Trop de tentatives. Réessayez dans quelques minutes.",
+  "errorNotFound": "Cette analyse est introuvable (elle a peut-être déjà été supprimée).",
+  "errorInvalidInput": "Les informations saisies ne sont pas valides.",
+  "errorAccountsUnavailable": "Les comptes et l'historique sont momentanément indisponibles."
 }

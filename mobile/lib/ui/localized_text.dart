@@ -33,6 +33,13 @@ String failureMessage(AppLocalizations l10n, FailureKind kind) {
     FailureKind.server => l10n.errorServer,
     FailureKind.invalidResponse => l10n.errorInvalidResponse,
     FailureKind.pickFailed => l10n.errorPickFailed,
+    FailureKind.unauthorized => l10n.errorUnauthorized,
+    FailureKind.invalidCredentials => l10n.errorInvalidCredentials,
+    FailureKind.emailTaken => l10n.errorEmailTaken,
+    FailureKind.tooManyAttempts => l10n.errorTooManyAttempts,
+    FailureKind.notFound => l10n.errorNotFound,
+    FailureKind.invalidInput => l10n.errorInvalidInput,
+    FailureKind.accountsUnavailable => l10n.errorAccountsUnavailable,
     FailureKind.unknown => l10n.errorUnknown,
   };
 }

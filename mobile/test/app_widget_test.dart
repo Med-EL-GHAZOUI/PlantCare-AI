@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:agriscan_mobile/app.dart';
+import 'package:agriscan_mobile/app_services.dart';
 import 'package:agriscan_mobile/data/models.dart';
 import 'package:agriscan_mobile/data/prediction_api.dart';
 import 'package:agriscan_mobile/l10n/app_localizations_ar.dart';
 import 'package:agriscan_mobile/l10n/app_localizations_fr.dart';
-import 'package:agriscan_mobile/logic/analysis_controller.dart';
 import 'package:agriscan_mobile/logic/image_source_service.dart';
 import 'package:agriscan_mobile/logic/locale_controller.dart';
 import 'package:flutter/material.dart';
@@ -16,21 +16,29 @@ import 'helpers.dart';
 final fr = AppLocalizationsFr();
 final ar = AppLocalizationsAr();
 
-Future<AnalysisController> pumpApp(
+Future<AppServices> pumpApp(
   WidgetTester tester, {
   required FakePredictionApi api,
   FakeImageSource? source,
   Locale? locale = const Locale('fr'),
+  FakeAccountApi? accountApi,
+  MemoryTokenStore? tokenStore,
 }) async {
   tester.view.physicalSize = const Size(900, 2200);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  final controller = AnalysisController(api: api, imageSource: source ?? FakeImageSource(image: sampleImage()));
-  await tester.pumpWidget(AgriScanApp(controller: controller, localeController: LocaleController(locale)));
+  final services = AppServices.assemble(
+    accountApi: accountApi ?? FakeAccountApi(),
+    predictionApi: api,
+    tokenStore: tokenStore ?? MemoryTokenStore(),
+    imageSource: source ?? FakeImageSource(image: sampleImage()),
+    locale: LocaleController(locale),
+  );
+  await tester.pumpWidget(AgriScanApp(services: services));
   await tester.pumpAndSettle();
-  return controller;
+  return services;
 }
 
 TextDirection directionOf(WidgetTester tester, Finder finder) => Directionality.of(tester.element(finder));

@@ -12,7 +12,13 @@
   "selectedImage": "الصورة المحددة",
   "resultTitle": "نتيجة الكشف الأولي",
   "modelScore": "درجة النموذج: {percent}",
-  "@modelScore": {"placeholders": {"percent": {"type": "String"}}},
+  "@modelScore": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "modelScoreNote": "هذه الدرجة ليست احتمالًا معايَرًا: إنها تدل فقط على الثقة النسبية للنموذج.",
   "otherClassesTitle": "أقرب الفئات",
   "uncertainTitle": "نتيجة غير مؤكدة",
@@ -46,5 +52,75 @@
   "classMosaicVirus": "فيروس موزاييك الطماطم",
   "classHealthy": "ورقة سليمة",
   "classUnknown": "فئة غير معروفة ({name})",
-  "@classUnknown": {"placeholders": {"name": {"type": "String"}}}
+  "@classUnknown": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "account": "الحساب",
+  "signIn": "تسجيل الدخول",
+  "register": "إنشاء حساب",
+  "signOut": "تسجيل الخروج",
+  "history": "السجل",
+  "email": "البريد الإلكتروني",
+  "password": "كلمة المرور",
+  "passwordHint": "10 أحرف على الأقل",
+  "signInTitle": "تسجيل الدخول",
+  "registerTitle": "إنشاء حساب",
+  "switchToRegister": "ليس لديك حساب؟ أنشئ حسابًا",
+  "switchToSignIn": "لديك حساب؟ سجّل الدخول",
+  "signedInAs": "مسجَّل الدخول: {email}",
+  "@signedInAs": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "signedInUnknown": "مسجَّل الدخول",
+  "signInToSaveHint": "سجّل الدخول للاحتفاظ بتحليلاتك في السجل.",
+  "savedToHistory": "تم حفظ النتيجة في سجلك (لا يتم الاحتفاظ بالصورة).",
+  "sessionExpired": "انتهت جلستك. سجّل الدخول من جديد لاستعادة سجلك.",
+  "validationEmail": "أدخل بريدًا إلكترونيًا صالحًا.",
+  "validationPassword": "يجب أن تحتوي كلمة المرور على 10 أحرف على الأقل.",
+  "cancel": "إلغاء",
+  "delete": "حذف",
+  "deleteAccount": "حذف حسابي",
+  "deleteAccountTitle": "حذف حسابك؟",
+  "deleteAccountBody": "سيتم حذف حسابك وجميع تحليلاتك المحفوظة نهائيًا.",
+  "historyTitle": "تحليلاتي",
+  "historyEmpty": "لا توجد تحليلات محفوظة. التحليلات التي تجريها وأنت مسجَّل الدخول تظهر هنا.",
+  "historyPrivacy": "تُحفظ النتائج فقط ولا تُحفظ الصور أبدًا.",
+  "historyUncertainItem": "نتيجة غير مؤكدة",
+  "loadMore": "عرض المزيد",
+  "detailTitle": "تفاصيل التحليل",
+  "analyzedOn": "تم التحليل في {date}",
+  "@analyzedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "modelVersionLabel": "إصدار النموذج: {version}",
+  "@modelVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteAnalysis": "حذف هذا التحليل",
+  "deleteAnalysisTitle": "حذف هذا التحليل؟",
+  "deleteAnalysisBody": "هذا الإجراء نهائي.",
+  "analysisDeleted": "تم حذف التحليل.",
+  "errorUnauthorized": "لم تعد جلستك صالحة. سجّل الدخول من جديد.",
+  "errorInvalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+  "errorEmailTaken": "هذا البريد الإلكتروني مستخدم بالفعل.",
+  "errorTooManyAttempts": "محاولات كثيرة. أعد المحاولة بعد بضع دقائق.",
+  "errorNotFound": "تعذّر العثور على هذا التحليل (ربما حُذف سابقًا).",
+  "errorInvalidInput": "المعلومات المدخلة غير صالحة.",
+  "errorAccountsUnavailable": "الحسابات والسجل غير متاحة مؤقتًا."
 }

@@ -1,56 +1,14 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io' show SocketException;
-
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
+import 'api_errors.dart';
 import 'models.dart';
 
-/// Nature d'un échec, indépendante de la langue ; l'interface choisit le message traduit.
-enum FailureKind {
-  network,
-  timeout,
-  fileTooLarge,
-  unsupportedFormat,
-  invalidImage,
-  emptyFile,
-  imageTooSmall,
-  imageTooLarge,
-  modelUnavailable,
-  server,
-  invalidResponse,
-  pickFailed,
-  unknown,
-}
-
-class ApiFailure implements Exception {
-  const ApiFailure(this.kind, {this.statusCode, this.code});
-
-  final FailureKind kind;
-  final int? statusCode;
-
-  /// Code d'erreur de l'API (`{"error": {"code": ...}}`), s'il est présent.
-  final String? code;
-
-  /// Un nouvel essai a une chance de réussir sans changer de photo.
-  bool get isRetryable => switch (kind) {
-        FailureKind.network ||
-        FailureKind.timeout ||
-        FailureKind.modelUnavailable ||
-        FailureKind.server ||
-        FailureKind.invalidResponse ||
-        FailureKind.unknown =>
-          true,
-        _ => false,
-      };
-
-  @override
-  String toString() => 'ApiFailure($kind, status: $statusCode, code: $code)';
-}
+export 'api_errors.dart' show ApiFailure, FailureKind;
 
 abstract class PredictionApi {
-  Future<Prediction> predict(PickedImage image);
+  /// Avec [accessToken], l'analyse est ajoutée à l'historique de l'utilisateur côté serveur.
+  Future<Prediction> predict(PickedImage image, {String? accessToken});
 }
 
 class HttpPredictionApi implements PredictionApi {
@@ -64,17 +22,6 @@ class HttpPredictionApi implements PredictionApi {
   final Duration timeout;
   final http.Client _client;
 
-  static const _codeToKind = <String, FailureKind>{
-    'file_too_large': FailureKind.fileTooLarge,
-    'unsupported_media_type': FailureKind.unsupportedFormat,
-    'invalid_image': FailureKind.invalidImage,
-    'empty_file': FailureKind.emptyFile,
-    'image_too_small': FailureKind.imageTooSmall,
-    'image_dimensions_too_large': FailureKind.imageTooLarge,
-    'model_unavailable': FailureKind.modelUnavailable,
-    'internal_error': FailureKind.server,
-  };
-
   /// Type MIME déduit de l'extension ; null si le format n'est pas JPEG/PNG.
   static String? contentTypeFor(String filename) {
     final lower = filename.toLowerCase();
@@ -84,7 +31,7 @@ class HttpPredictionApi implements PredictionApi {
   }
 
   @override
-  Future<Prediction> predict(PickedImage image) async {
+  Future<Prediction> predict(PickedImage image, {String? accessToken}) async {
     final contentType = contentTypeFor(image.name);
     if (contentType == null) throw const ApiFailure(FailureKind.unsupportedFormat);
 
@@ -95,51 +42,14 @@ class HttpPredictionApi implements PredictionApi {
         filename: image.name,
         contentType: MediaType.parse(contentType),
       ));
+    if (accessToken != null) request.headers['Authorization'] = 'Bearer $accessToken';
 
-    final http.Response response;
-    try {
-      final streamed = await _client.send(request).timeout(timeout);
-      response = await http.Response.fromStream(streamed).timeout(timeout);
-    } on TimeoutException {
-      throw const ApiFailure(FailureKind.timeout);
-    } on SocketException {
-      throw const ApiFailure(FailureKind.network);
-    } on http.ClientException {
-      throw const ApiFailure(FailureKind.network);
-    }
-
-    if (response.statusCode == 200) {
-      try {
-        return Prediction.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
-      } on FormatException {
-        throw ApiFailure(FailureKind.invalidResponse, statusCode: response.statusCode);
-      } on TypeError {
-        throw ApiFailure(FailureKind.invalidResponse, statusCode: response.statusCode);
-      }
-    }
-    throw _failureFromError(response);
-  }
-
-  ApiFailure _failureFromError(http.Response response) {
-    String? code;
-    try {
-      final body = jsonDecode(utf8.decode(response.bodyBytes));
-      if (body is Map<String, dynamic> && body['error'] is Map<String, dynamic>) {
-        code = (body['error'] as Map<String, dynamic>)['code'] as String?;
-      }
-    } on FormatException {
-      code = null;
-    }
-    final status = response.statusCode;
-    final kind = _codeToKind[code] ??
-        switch (status) {
-          413 => FailureKind.fileTooLarge,
-          415 => FailureKind.unsupportedFormat,
-          503 => FailureKind.modelUnavailable,
-          >= 500 => FailureKind.server,
-          _ => FailureKind.unknown,
-        };
-    return ApiFailure(kind, statusCode: status, code: code);
+    final response = await sendGuarded(
+      () async => http.Response.fromStream(await _client.send(request)),
+      timeout,
+    );
+    if (response.statusCode == 200) return decodeBody(response, Prediction.fromJson);
+    throw failureFromResponse(response);
   }
 
   void close() => _client.close();

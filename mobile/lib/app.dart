@@ -1,26 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'app_services.dart';
 import 'l10n/app_localizations.dart';
-import 'logic/analysis_controller.dart';
 import 'logic/locale_controller.dart';
 import 'ui/home_screen.dart';
 
-class AgriScanApp extends StatelessWidget {
-  const AgriScanApp({super.key, required this.controller, required this.localeController});
+class AgriScanApp extends StatefulWidget {
+  const AgriScanApp({super.key, required this.services});
 
-  final AnalysisController controller;
-  final LocaleController localeController;
+  final AppServices services;
+
+  @override
+  State<AgriScanApp> createState() => _AgriScanAppState();
+}
+
+class _AgriScanAppState extends State<AgriScanApp> {
+  @override
+  void initState() {
+    super.initState();
+    widget.services.session.restore(); // reprend la session si un jeton valide est stocké
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: localeController,
+      listenable: widget.services.locale,
       builder: (context, _) => MaterialApp(
         onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(colorSchemeSeed: const Color(0xFF2E7D32), useMaterial3: true),
-        locale: localeController.locale,
+        locale: widget.services.locale.locale,
         supportedLocales: LocaleController.supportedLocales,
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -35,7 +45,7 @@ class AgriScanApp extends StatelessWidget {
           }
           return supported.first;
         },
-        home: HomeScreen(controller: controller, localeController: localeController),
+        home: HomeScreen(services: widget.services),
       ),
     );
   }

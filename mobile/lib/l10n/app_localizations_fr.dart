@@ -166,4 +166,152 @@ class AppLocalizationsFr extends AppLocalizations {
   String classUnknown(String name) {
     return 'Classe inconnue ($name)';
   }
+
+  @override
+  String get account => 'Compte';
+
+  @override
+  String get signIn => 'Se connecter';
+
+  @override
+  String get register => 'Créer un compte';
+
+  @override
+  String get signOut => 'Se déconnecter';
+
+  @override
+  String get history => 'Historique';
+
+  @override
+  String get email => 'Adresse e-mail';
+
+  @override
+  String get password => 'Mot de passe';
+
+  @override
+  String get passwordHint => '10 caractères minimum';
+
+  @override
+  String get signInTitle => 'Connexion';
+
+  @override
+  String get registerTitle => 'Créer un compte';
+
+  @override
+  String get switchToRegister => 'Pas encore de compte ? Créer un compte';
+
+  @override
+  String get switchToSignIn => 'Déjà un compte ? Se connecter';
+
+  @override
+  String signedInAs(String email) {
+    return 'Connecté : $email';
+  }
+
+  @override
+  String get signedInUnknown => 'Connecté';
+
+  @override
+  String get signInToSaveHint =>
+      'Connectez-vous pour conserver vos analyses dans l\'historique.';
+
+  @override
+  String get savedToHistory =>
+      'Résultat enregistré dans votre historique (la photo n\'est pas conservée).';
+
+  @override
+  String get sessionExpired =>
+      'Votre session a expiré. Reconnectez-vous pour retrouver votre historique.';
+
+  @override
+  String get validationEmail => 'Saisissez une adresse e-mail valide.';
+
+  @override
+  String get validationPassword =>
+      'Le mot de passe doit contenir au moins 10 caractères.';
+
+  @override
+  String get cancel => 'Annuler';
+
+  @override
+  String get delete => 'Supprimer';
+
+  @override
+  String get deleteAccount => 'Supprimer mon compte';
+
+  @override
+  String get deleteAccountTitle => 'Supprimer votre compte ?';
+
+  @override
+  String get deleteAccountBody =>
+      'Votre compte et toutes vos analyses enregistrées seront supprimés définitivement.';
+
+  @override
+  String get historyTitle => 'Mes analyses';
+
+  @override
+  String get historyEmpty =>
+      'Aucune analyse enregistrée. Les analyses faites en étant connecté apparaissent ici.';
+
+  @override
+  String get historyPrivacy =>
+      'Seuls les résultats sont conservés, jamais les photos.';
+
+  @override
+  String get historyUncertainItem => 'Résultat incertain';
+
+  @override
+  String get loadMore => 'Charger plus';
+
+  @override
+  String get detailTitle => 'Détail de l\'analyse';
+
+  @override
+  String analyzedOn(String date) {
+    return 'Analysé le $date';
+  }
+
+  @override
+  String modelVersionLabel(String version) {
+    return 'Version du modèle : $version';
+  }
+
+  @override
+  String get deleteAnalysis => 'Supprimer cette analyse';
+
+  @override
+  String get deleteAnalysisTitle => 'Supprimer cette analyse ?';
+
+  @override
+  String get deleteAnalysisBody => 'Cette action est définitive.';
+
+  @override
+  String get analysisDeleted => 'Analyse supprimée.';
+
+  @override
+  String get errorUnauthorized =>
+      'Votre session n\'est plus valide. Reconnectez-vous.';
+
+  @override
+  String get errorInvalidCredentials =>
+      'Adresse e-mail ou mot de passe incorrect.';
+
+  @override
+  String get errorEmailTaken => 'Cette adresse e-mail est déjà utilisée.';
+
+  @override
+  String get errorTooManyAttempts =>
+      'Trop de tentatives. Réessayez dans quelques minutes.';
+
+  @override
+  String get errorNotFound =>
+      'Cette analyse est introuvable (elle a peut-être déjà été supprimée).';
+
+  @override
+  String get errorInvalidInput =>
+      'Les informations saisies ne sont pas valides.';
+
+  @override
+  String get errorAccountsUnavailable =>
+      'Les comptes et l\'historique sont momentanément indisponibles.';
 }

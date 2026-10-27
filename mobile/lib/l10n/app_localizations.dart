@@ -367,6 +367,264 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Classe inconnue ({name})'**
   String classUnknown(String name);
+
+  /// No description provided for @account.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte'**
+  String get account;
+
+  /// No description provided for @signIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
+  String get signIn;
+
+  /// No description provided for @register.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer un compte'**
+  String get register;
+
+  /// No description provided for @signOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter'**
+  String get signOut;
+
+  /// No description provided for @history.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique'**
+  String get history;
+
+  /// No description provided for @email.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse e-mail'**
+  String get email;
+
+  /// No description provided for @password.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
+  String get password;
+
+  /// No description provided for @passwordHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'10 caractères minimum'**
+  String get passwordHint;
+
+  /// No description provided for @signInTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion'**
+  String get signInTitle;
+
+  /// No description provided for @registerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer un compte'**
+  String get registerTitle;
+
+  /// No description provided for @switchToRegister.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore de compte ? Créer un compte'**
+  String get switchToRegister;
+
+  /// No description provided for @switchToSignIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjà un compte ? Se connecter'**
+  String get switchToSignIn;
+
+  /// No description provided for @signedInAs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connecté : {email}'**
+  String signedInAs(String email);
+
+  /// No description provided for @signedInUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connecté'**
+  String get signedInUnknown;
+
+  /// No description provided for @signInToSaveHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connectez-vous pour conserver vos analyses dans l\'historique.'**
+  String get signInToSaveHint;
+
+  /// No description provided for @savedToHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultat enregistré dans votre historique (la photo n\'est pas conservée).'**
+  String get savedToHistory;
+
+  /// No description provided for @sessionExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre session a expiré. Reconnectez-vous pour retrouver votre historique.'**
+  String get sessionExpired;
+
+  /// No description provided for @validationEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez une adresse e-mail valide.'**
+  String get validationEmail;
+
+  /// No description provided for @validationPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le mot de passe doit contenir au moins 10 caractères.'**
+  String get validationPassword;
+
+  /// No description provided for @cancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get delete;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer mon compte'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer votre compte ?'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre compte et toutes vos analyses enregistrées seront supprimés définitivement.'**
+  String get deleteAccountBody;
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes analyses'**
+  String get historyTitle;
+
+  /// No description provided for @historyEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune analyse enregistrée. Les analyses faites en étant connecté apparaissent ici.'**
+  String get historyEmpty;
+
+  /// No description provided for @historyPrivacy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seuls les résultats sont conservés, jamais les photos.'**
+  String get historyPrivacy;
+
+  /// No description provided for @historyUncertainItem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultat incertain'**
+  String get historyUncertainItem;
+
+  /// No description provided for @loadMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Charger plus'**
+  String get loadMore;
+
+  /// No description provided for @detailTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détail de l\'analyse'**
+  String get detailTitle;
+
+  /// No description provided for @analyzedOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Analysé le {date}'**
+  String analyzedOn(String date);
+
+  /// No description provided for @modelVersionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Version du modèle : {version}'**
+  String modelVersionLabel(String version);
+
+  /// No description provided for @deleteAnalysis.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer cette analyse'**
+  String get deleteAnalysis;
+
+  /// No description provided for @deleteAnalysisTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer cette analyse ?'**
+  String get deleteAnalysisTitle;
+
+  /// No description provided for @deleteAnalysisBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette action est définitive.'**
+  String get deleteAnalysisBody;
+
+  /// No description provided for @analysisDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Analyse supprimée.'**
+  String get analysisDeleted;
+
+  /// No description provided for @errorUnauthorized.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre session n\'est plus valide. Reconnectez-vous.'**
+  String get errorUnauthorized;
+
+  /// No description provided for @errorInvalidCredentials.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse e-mail ou mot de passe incorrect.'**
+  String get errorInvalidCredentials;
+
+  /// No description provided for @errorEmailTaken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette adresse e-mail est déjà utilisée.'**
+  String get errorEmailTaken;
+
+  /// No description provided for @errorTooManyAttempts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trop de tentatives. Réessayez dans quelques minutes.'**
+  String get errorTooManyAttempts;
+
+  /// No description provided for @errorNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette analyse est introuvable (elle a peut-être déjà été supprimée).'**
+  String get errorNotFound;
+
+  /// No description provided for @errorInvalidInput.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les informations saisies ne sont pas valides.'**
+  String get errorInvalidInput;
+
+  /// No description provided for @errorAccountsUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les comptes et l\'historique sont momentanément indisponibles.'**
+  String get errorAccountsUnavailable;
 }
 
 class _AppLocalizationsDelegate

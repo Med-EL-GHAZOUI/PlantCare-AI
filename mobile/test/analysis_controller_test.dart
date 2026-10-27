@@ -129,9 +129,62 @@ void main() {
     expect(controller.prediction!.isUncertain, isTrue);
     expect(controller.prediction!.predictedClass, isNull);
   });
+
+  group('analyse avec jeton', () {
+    test('le jeton de session est transmis et savedToHistory est vrai après succès', () async {
+      final api = FakePredictionApi(result: samplePrediction());
+      final controller = AnalysisController(
+        api: api,
+        imageSource: FakeImageSource(image: sampleImage()),
+        accessToken: () => 'tok-1',
+      );
+      await controller.pickAndAnalyze(ImageOrigin.gallery);
+      expect(api.tokensSeen, ['tok-1']);
+      expect(controller.savedToHistory, isTrue);
+    });
+
+    test('sans jeton : analyse anonyme, savedToHistory faux', () async {
+      final api = FakePredictionApi(result: samplePrediction());
+      final controller = AnalysisController(
+        api: api,
+        imageSource: FakeImageSource(image: sampleImage()),
+        accessToken: () => null,
+      );
+      await controller.pickAndAnalyze(ImageOrigin.gallery);
+      expect(api.tokensSeen, [null]);
+      expect(controller.savedToHistory, isFalse);
+    });
+
+    test('401 : onUnauthorized est appelé et l’échec est exposé', () async {
+      var expired = 0;
+      final api = FakePredictionApi(failure: const ApiFailure(FailureKind.unauthorized, statusCode: 401));
+      final controller = AnalysisController(
+        api: api,
+        imageSource: FakeImageSource(image: sampleImage()),
+        accessToken: () => 'tok-1',
+        onUnauthorized: () async => expired++,
+      );
+      await controller.pickAndAnalyze(ImageOrigin.gallery);
+      expect(expired, 1);
+      expect(controller.failure!.kind, FailureKind.unauthorized);
+      expect(controller.savedToHistory, isFalse);
+    });
+
+    test('un autre échec n’appelle pas onUnauthorized', () async {
+      var expired = 0;
+      final controller = AnalysisController(
+        api: FakePredictionApi(failure: const ApiFailure(FailureKind.network)),
+        imageSource: FakeImageSource(image: sampleImage()),
+        accessToken: () => 'tok-1',
+        onUnauthorized: () async => expired++,
+      );
+      await controller.pickAndAnalyze(ImageOrigin.gallery);
+      expect(expired, 0);
+    });
+  });
 }
 
 class _ThrowingApi implements PredictionApi {
   @override
-  Future<Prediction> predict(PickedImage image) async => throw StateError('boom');
+  Future<Prediction> predict(PickedImage image, {String? accessToken}) async => throw StateError('boom');
 }

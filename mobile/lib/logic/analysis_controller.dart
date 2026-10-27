@@ -14,6 +14,8 @@ class AnalysisController extends ChangeNotifier {
     required PredictionApi api,
     required ImageSourceService imageSource,
     this.maxUploadBytes = AppConfig.maxUploadBytes,
+    this.accessToken,
+    this.onUnauthorized,
   })  : _api = api,
         _imageSource = imageSource;
 
@@ -21,10 +23,20 @@ class AnalysisController extends ChangeNotifier {
   final ImageSourceService _imageSource;
   final int maxUploadBytes;
 
+  /// Jeton de la session courante (null = analyse anonyme, non enregistrée).
+  final String? Function()? accessToken;
+
+  /// Appelé quand le serveur rejette le jeton (401) : la session doit être fermée.
+  final Future<void> Function()? onUnauthorized;
+
   AnalysisStatus _status = AnalysisStatus.idle;
   PickedImage? _image;
   Prediction? _prediction;
   ApiFailure? _failure;
+  bool _savedToHistory = false;
+
+  /// Vrai si la dernière analyse réussie a été envoyée avec un jeton (donc ajoutée à l'historique).
+  bool get savedToHistory => _savedToHistory;
 
   AnalysisStatus get status => _status;
   PickedImage? get image => _image;
@@ -60,6 +72,7 @@ class AnalysisController extends ChangeNotifier {
     _image = null;
     _prediction = null;
     _failure = null;
+    _savedToHistory = false;
     notifyListeners();
   }
 
@@ -67,6 +80,7 @@ class AnalysisController extends ChangeNotifier {
     _image = image;
     _prediction = null;
     _failure = null;
+    _savedToHistory = false;
 
     if (image.bytes.isEmpty) return _fail(const ApiFailure(FailureKind.emptyFile));
     if (image.bytes.length > maxUploadBytes) return _fail(const ApiFailure(FailureKind.fileTooLarge));
@@ -76,11 +90,14 @@ class AnalysisController extends ChangeNotifier {
 
     _status = AnalysisStatus.loading;
     notifyListeners();
+    final token = accessToken?.call();
     try {
-      _prediction = await _api.predict(image);
+      _prediction = await _api.predict(image, accessToken: token);
+      _savedToHistory = token != null;
       _status = AnalysisStatus.success;
       notifyListeners();
     } on ApiFailure catch (failure) {
+      if (failure.kind == FailureKind.unauthorized) await onUnauthorized?.call();
       _fail(failure);
     } catch (_) {
       // Toute erreur inattendue (y compris StateError/TypeError) doit sortir du chargement.

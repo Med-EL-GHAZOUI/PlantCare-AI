@@ -1,16 +1,22 @@
-// Test d'intégration sur appareil/émulateur : vrai réseau, vraie API, vrai modèle.
-// Lancer l'API (backend/) puis, depuis mobile/ :
+// Test d'intégration sur appareil/émulateur : vrai réseau, vraie API, vrai modèle, vraie base PostgreSQL
+// et vrai stockage sécurisé du jeton (Android Keystore).
+//
+// Prérequis : API lancée avec AGRISCAN_DATABASE_URL et AGRISCAN_JWT_SECRET (voir docs/MOBILE.md), puis,
+// depuis mobile/ :
 //   flutter test integration_test -d <id appareil> --dart-define=API_BASE_URL=http://10.0.2.2:8000
-// L'image est synthétique (aucune donnée PlantVillage) : le test vérifie le contrat et l'affichage,
-// pas la justesse du diagnostic.
+//
+// L'image est synthétique (aucune donnée PlantVillage) : on vérifie le contrat, la persistance et
+// l'affichage, pas la justesse du diagnostic. Le compte de test est créé puis supprimé par le test.
 import 'dart:convert';
 
 import 'package:agriscan_mobile/app.dart';
+import 'package:agriscan_mobile/app_services.dart';
 import 'package:agriscan_mobile/config/app_config.dart';
+import 'package:agriscan_mobile/data/account_api.dart';
 import 'package:agriscan_mobile/data/models.dart';
 import 'package:agriscan_mobile/data/prediction_api.dart';
+import 'package:agriscan_mobile/data/token_store.dart';
 import 'package:agriscan_mobile/l10n/app_localizations_fr.dart';
-import 'package:agriscan_mobile/logic/analysis_controller.dart';
 import 'package:agriscan_mobile/logic/image_source_service.dart';
 import 'package:agriscan_mobile/logic/locale_controller.dart';
 import 'package:flutter/material.dart';
@@ -26,13 +32,33 @@ class _FixedImageSource implements ImageSourceService {
       PickedImage(bytes: base64Decode(_leafJpegBase64), name: 'feuille_synthetique.jpg');
 }
 
-Future<void> _pumpApp(WidgetTester tester, String baseUrl) async {
-  final controller = AnalysisController(
-    api: HttpPredictionApi(baseUrl: baseUrl, timeout: const Duration(seconds: 20)),
-    imageSource: _FixedImageSource(),
-  );
-  await tester.pumpWidget(AgriScanApp(controller: controller, localeController: LocaleController(const Locale('fr'))));
+AppServices _services(String baseUrl, TokenStore store) => AppServices.assemble(
+      accountApi: HttpAccountApi(baseUrl: baseUrl, timeout: const Duration(seconds: 20)),
+      predictionApi: HttpPredictionApi(baseUrl: baseUrl, timeout: const Duration(seconds: 20)),
+      tokenStore: store,
+      imageSource: _FixedImageSource(),
+      locale: LocaleController(const Locale('fr')),
+    );
+
+Future<void> _pump(WidgetTester tester, AppServices services) async {
+  await tester.pumpWidget(AgriScanApp(services: services));
   await tester.pumpAndSettle();
+}
+
+Future<void> _waitGone(WidgetTester tester, Finder finder, {Duration timeout = const Duration(seconds: 30)}) async {
+  final end = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 250));
+    if (finder.evaluate().isEmpty) return;
+  }
+  fail('Toujours affiché après le délai : $finder');
+}
+
+Future<void> _openMenuItem(WidgetTester tester, Key itemKey) async {
+  await tester.tap(find.byKey(const Key('account_menu')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(itemKey));
+  await tester.pump();
 }
 
 Future<void> _waitFor(WidgetTester tester, Finder finder, {Duration timeout = const Duration(seconds: 60)}) async {
@@ -48,23 +74,92 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   final fr = AppLocalizationsFr();
 
-  testWidgets('API réelle : une image valide donne un résultat ou un statut incertain', (tester) async {
-    await _pumpApp(tester, AppConfig.apiBaseUrl);
+  testWidgets('API réelle, anonyme : résultat ou incertain avec avertissements, rien enregistré', (tester) async {
+    final store = SecureTokenStore();
+    await store.clear();
+    await _pump(tester, _services(AppConfig.apiBaseUrl, store));
     await tester.tap(find.byKey(const Key('gallery_button')));
-    await _waitFor(tester, find.byType(Card));
     await _waitFor(tester, find.byKey(const Key('disclaimer')));
 
     final hasResult = find.byKey(const Key('result_card')).evaluate().isNotEmpty;
     final isUncertain = find.byKey(const Key('uncertain_card')).evaluate().isNotEmpty;
     expect(hasResult || isUncertain, isTrue);
     expect(find.byKey(const Key('error_card')), findsNothing);
-    expect(find.text(fr.disclaimer), findsOneWidget);
+    expect(find.byKey(const Key('saved_note')), findsNothing);
   });
 
   testWidgets('API injoignable : message réseau et bouton Réessayer', (tester) async {
-    await _pumpApp(tester, 'http://10.0.2.2:9');
+    await _pump(tester, _services('http://10.0.2.2:9', SecureTokenStore()));
     await tester.tap(find.byKey(const Key('gallery_button')));
     await _waitFor(tester, find.byKey(const Key('error_card')));
     expect(find.byKey(const Key('retry_button')), findsOneWidget);
+  });
+
+  testWidgets('parcours complet : inscription, analyse enregistrée, session restaurée, détail, suppression',
+      (tester) async {
+    final store = SecureTokenStore();
+    await store.clear();
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    final email = 'it-$stamp@example.com';
+    final password = 'Test-$stamp-Zq';
+
+    // 1. Inscription depuis l'interface
+    var services = _services(AppConfig.apiBaseUrl, store);
+    await _pump(tester, services);
+    await tester.tap(find.byKey(const Key('sign_in_button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('auth_switch')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('email_field')), email);
+    await tester.enterText(find.byKey(const Key('password_field')), password);
+    await tester.tap(find.byKey(const Key('auth_submit')));
+    await _waitFor(tester, find.byKey(const Key('account_menu')));
+
+    // Le jeton est dans le stockage sécurisé de l'appareil
+    expect(await store.read(), isNotNull);
+
+    // 2. Analyse enregistrée dans l'historique
+    await tester.tap(find.byKey(const Key('gallery_button')));
+    await _waitFor(tester, find.byKey(const Key('saved_note')));
+    expect(find.text(fr.savedToHistory), findsOneWidget);
+
+    // 3. « Redémarrage » : nouveaux contrôleurs, même stockage sécurisé, session restaurée
+    services = _services(AppConfig.apiBaseUrl, SecureTokenStore());
+    await tester.pumpWidget(const SizedBox());
+    await _pump(tester, services);
+    await _waitFor(tester, find.byKey(const Key('account_menu')));
+    expect(services.session.user?.email, email);
+
+    // 4. Historique : une analyse, puis son détail
+    await _openMenuItem(tester, const Key('menu_history'));
+    await _waitFor(tester, find.byType(ListTile));
+    expect(find.byType(ListTile), findsOneWidget);
+    await tester.tap(find.byType(ListTile));
+    await _waitFor(tester, find.byKey(const Key('detail_date')));
+    expect(find.byKey(const Key('disclaimer')), findsOneWidget);
+
+    // 5. Suppression de l'analyse depuis le détail : liste vide
+    await tester.tap(find.byKey(const Key('detail_delete_button')));
+    await _waitFor(tester, find.byKey(const Key('dialog_confirm')));
+    await tester.tap(find.byKey(const Key('dialog_confirm')));
+    await _waitFor(tester, find.byKey(const Key('history_empty')));
+    await _waitGone(tester, find.byKey(const Key('detail_date'))); // l'écran de détail est refermé
+    await tester.pumpAndSettle();
+
+    // 6. Suppression du compte : déconnexion et jeton effacé de l'appareil
+    await tester.tap(find.byType(BackButton)); // retour de l'historique à l'accueil
+    await tester.pumpAndSettle();
+    await _openMenuItem(tester, const Key('menu_delete_account'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('dialog_confirm')));
+    await _waitFor(tester, find.byKey(const Key('sign_in_button')));
+    expect(await SecureTokenStore().read(), isNull);
+
+    // Le compte n'existe plus côté serveur : connexion impossible
+    final api = HttpAccountApi(baseUrl: AppConfig.apiBaseUrl);
+    await expectLater(
+      api.login(email, password),
+      throwsA(isA<ApiFailure>().having((f) => f.kind, 'kind', FailureKind.invalidCredentials)),
+    );
   });
 }

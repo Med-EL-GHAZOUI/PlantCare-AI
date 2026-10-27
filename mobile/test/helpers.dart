@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:agriscan_mobile/data/account_api.dart';
 import 'package:agriscan_mobile/data/models.dart';
+import 'package:agriscan_mobile/data/token_store.dart';
 import 'package:agriscan_mobile/data/prediction_api.dart';
 import 'package:agriscan_mobile/logic/image_source_service.dart';
 
@@ -76,12 +78,137 @@ class FakePredictionApi implements PredictionApi {
   ApiFailure? failure;
   Completer<Prediction>? completer;
   int calls = 0;
+  final List<String?> tokensSeen = [];
 
   @override
-  Future<Prediction> predict(PickedImage image) async {
+  Future<Prediction> predict(PickedImage image, {String? accessToken}) async {
     calls++;
+    tokensSeen.add(accessToken);
     if (completer != null) return completer!.future;
     if (failure != null) throw failure!;
     return result!;
+  }
+}
+
+AnalysisRecord sampleRecord(
+  String id, {
+  bool uncertain = false,
+  String? predictedClass = 'Tomato___Late_blight',
+  DateTime? createdAt,
+}) =>
+    AnalysisRecord(
+      id: id,
+      status: uncertain ? PredictionStatus.uncertain : PredictionStatus.predictionAvailable,
+      predictedClass: uncertain ? null : predictedClass,
+      confidenceScore: uncertain ? 0.55 : 0.91,
+      scores: {for (final c in kClasses) c: 0.01}..['Tomato___Late_blight'] = 0.91,
+      modelVersion: 'mobilenetv2_classifier-10a733ad75f0',
+      createdAt: createdAt ?? DateTime(2026, 10, 27, 14, 30),
+    );
+
+/// Stockage de jeton en mémoire (le vrai stockage chiffré nécessite un appareil).
+class MemoryTokenStore implements TokenStore {
+  MemoryTokenStore([this.value]);
+
+  String? value;
+  int writes = 0;
+  int clears = 0;
+
+  @override
+  Future<String?> read() async => value;
+
+  @override
+  Future<void> write(String token) async {
+    writes++;
+    value = token;
+  }
+
+  @override
+  Future<void> clear() async {
+    clears++;
+    value = null;
+  }
+}
+
+/// API de comptes pilotable. Le jeton émis est `tok-<email>` ; tout autre jeton est refusé (401).
+class FakeAccountApi implements AccountApi {
+  FakeAccountApi({List<AnalysisRecord>? records}) : records = records ?? [];
+
+  final List<AnalysisRecord> records;
+  final List<String> calls = [];
+  final Set<String> revokedTokens = {};
+  ApiFailure? registerFailure;
+  ApiFailure? loginFailure;
+  ApiFailure? meFailure;
+  ApiFailure? listFailure;
+  ApiFailure? getFailure;
+  ApiFailure? deleteFailure;
+  ApiFailure? deleteAccountFailure;
+  Completer<void>? loginGate;
+  Completer<void>? getGate;
+
+  void _checkToken(String token) {
+    if (!token.startsWith('tok-') || revokedTokens.contains(token)) {
+      throw const ApiFailure(FailureKind.unauthorized, statusCode: 401);
+    }
+  }
+
+  @override
+  Future<UserProfile> register(String email, String password) async {
+    calls.add('register:$email');
+    if (registerFailure != null) throw registerFailure!;
+    return UserProfile(id: 'u-1', email: email, role: 'user');
+  }
+
+  @override
+  Future<AccessToken> login(String email, String password) async {
+    calls.add('login:$email');
+    if (loginGate != null) await loginGate!.future;
+    if (loginFailure != null) throw loginFailure!;
+    return AccessToken(value: 'tok-$email', expiresInSeconds: 1800);
+  }
+
+  @override
+  Future<UserProfile> me(String token) async {
+    calls.add('me');
+    if (meFailure != null) throw meFailure!;
+    _checkToken(token);
+    return UserProfile(id: 'u-1', email: token.substring(4), role: 'user');
+  }
+
+  @override
+  Future<void> deleteAccount(String token) async {
+    calls.add('deleteAccount');
+    if (deleteAccountFailure != null) throw deleteAccountFailure!;
+    _checkToken(token);
+    records.clear();
+  }
+
+  @override
+  Future<AnalysisPage> listAnalyses(String token, {int limit = 20, int offset = 0}) async {
+    calls.add('list:$limit:$offset');
+    if (listFailure != null) throw listFailure!;
+    _checkToken(token);
+    final page = records.skip(offset).take(limit).toList();
+    return AnalysisPage(items: page, total: records.length, offset: offset);
+  }
+
+  @override
+  Future<AnalysisRecord> getAnalysis(String token, String id) async {
+    calls.add('get:$id');
+    if (getGate != null) await getGate!.future;
+    if (getFailure != null) throw getFailure!;
+    _checkToken(token);
+    return records.firstWhere((r) => r.id == id, orElse: () => throw const ApiFailure(FailureKind.notFound));
+  }
+
+  @override
+  Future<void> deleteAnalysis(String token, String id) async {
+    calls.add('delete:$id');
+    if (deleteFailure != null) throw deleteFailure!;
+    _checkToken(token);
+    final before = records.length;
+    records.removeWhere((r) => r.id == id);
+    if (records.length == before) throw const ApiFailure(FailureKind.notFound);
   }
 }
