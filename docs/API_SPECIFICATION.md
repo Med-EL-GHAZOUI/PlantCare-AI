@@ -113,6 +113,25 @@ Supprime l'analyse autorisée selon la politique de rétention. La suppression d
 
 Ces routes privées ne doivent être activées qu'après mise en place et test de l'authentification et de l'autorisation.
 
+## 5 bis. Comptes et historique : état réel (Phase 4, 2026-10-27)
+
+Authentification locale par email et mot de passe ; jeton JWT (HS256, 30 min par défaut, sans jeton de rafraîchissement) à transmettre dans `Authorization: Bearer <jeton>`. Mots de passe : 10 à 128 caractères, hachés en Argon2id.
+
+| Route | Description | Codes |
+|---|---|---|
+| `POST /api/v1/auth/register` | `{email, password}` → `{id, email, role}` | 201, 409 `email_already_registered`, 422 |
+| `POST /api/v1/auth/login` | `{email, password}` → `{access_token, token_type, expires_in}` | 200, 401 `invalid_credentials` (même message si l'email est inconnu), 429 `too_many_attempts` (5 échecs en 15 min, par email et par IP) |
+| `GET /api/v1/auth/me` | profil | 200, 401 |
+| `DELETE /api/v1/auth/me` | supprime le compte et ses analyses | 204, 401 |
+| `POST /api/v1/predictions` | inchangé ; **avec jeton valide**, l'analyse est ajoutée à l'historique (`prediction_id` = identifiant de l'analyse) ; sans jeton, rien n'est stocké ; jeton invalide = 401 | |
+| `GET /api/v1/analyses?limit&offset` | historique de l'utilisateur, plus récentes d'abord (limit 1–100, défaut 20) → `{items, total, limit, offset}` | 200, 401, 422 |
+| `GET /api/v1/analyses/{id}` | une analyse | 200, 401, 404 |
+| `DELETE /api/v1/analyses/{id}` | supprime une analyse | 204, 401, 404 |
+
+Autorisation : une analyse d'un autre utilisateur renvoie **404**, identique à une analyse inexistante (aucune fuite d'existence). Sans `AGRISCAN_DATABASE_URL` ou `AGRISCAN_JWT_SECRET`, les routes de compte et d'historique répondent 503 (`database_unavailable` / `auth_unavailable`) ; la prédiction anonyme continue de fonctionner.
+
+Limites connues : limitation des connexions en mémoire (par processus, perdue au redémarrage) ; pas de vérification d'email, de réinitialisation de mot de passe, de verrouillage de compte ni de révocation de jeton avant expiration ; le rôle `admin` existe en base mais aucune route d'administration n'est implémentée ; le 409 à l'inscription révèle qu'un email existe (arbitrage assumé).
+
 ## 6. Erreurs
 
 Prévoir des réponses cohérentes pour :

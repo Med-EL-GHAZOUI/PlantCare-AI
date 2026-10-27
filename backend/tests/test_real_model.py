@@ -51,7 +51,7 @@ def test_inference_preprocessing_matches_training_pipeline(real_service) -> None
 
 def test_endpoint_with_real_model_end_to_end(real_service) -> None:
     path = sample_paths(1)[0]
-    with TestClient(create_app(Settings(), model_service=real_service)) as client:
+    with TestClient(create_app(Settings(_env_file=None), model_service=real_service)) as client:
         response = client.post("/api/v1/predictions", files={"image": ("leaf.jpg", path.read_bytes(), "image/jpeg")})
         info = client.get("/api/v1/model/info").json()
     assert response.status_code == 200

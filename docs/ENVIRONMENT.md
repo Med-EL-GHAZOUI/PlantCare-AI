@@ -56,5 +56,13 @@ Pillow, scikit-learn, pandas et matplotlib seront ajoutés à `requirements.txt`
 
 ## 6. Décisions ouvertes
 
-- PostgreSQL : installation locale ou conteneur Docker.
+- PostgreSQL de développement durable : Docker (si réparé) ou installation locale ; voir section 7.
 - Dataset : PlantVillage seul, ou PlantDoc en complément (licence à vérifier, voir [Dataset Card](DATASET_CARD.md)).
+
+## 7. PostgreSQL et Docker (Phase 4)
+
+- **Docker Desktop 4.81 ne démarre pas sur cette machine** : le moteur plante avec « initializing Inference manager … remove …\Docker\run\dockerInference: The file cannot be accessed by the system » (socket périmé que Docker ne peut pas supprimer). Le fichier n'a pas été supprimé à la demande de l'utilisateur de ne pas toucher à Docker. `infra/docker-compose.yml` est donc **non testé**.
+- Des processus `postgres.exe` système (session 0, accès refusé) tournent sur la machine ; ils ne proviennent pas du projet et n'ont pas été utilisés.
+- Les tests PostgreSQL du backend utilisent **`pgserver` 0.1.4** (PostgreSQL 16.2 embarqué, dossier temporaire éphémère, aucune donnée persistante), installé dans `backend/.venv` via `requirements-dev.txt`. Si `AGRISCAN_TEST_DATABASE_URL` pointe vers un serveur joignable, il est utilisé à la place. Les migrations Alembic y sont réellement appliquées (montée, descente, remontée) et comparées aux modèles.
+- Environnement backend : `backend/.venv` (FastAPI, TensorFlow CPU, SQLAlchemy 2, Alembic, psycopg 3, argon2-cffi, PyJWT).
+- Pas encore de base PostgreSQL persistante pour lancer l'API avec comptes : il faudra la fournir (Docker réparé ou installation locale) et définir `AGRISCAN_DATABASE_URL` et `AGRISCAN_JWT_SECRET` dans `backend/.env`.

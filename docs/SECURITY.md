@@ -51,17 +51,25 @@
 - Surveiller les erreurs sans collecter de données sensibles inutiles.
 - Définir des limites de débit et d'usage adaptées au déploiement.
 
+## 6 bis. Implémenté en Phase 4
+
+- Argon2id pour les mots de passe ; jetons JWT signés HS256 avec un secret d'au moins 32 caractères lu dans l'environnement (refus au démarrage sinon), expiration 30 minutes.
+- Jetons expirés, signés avec un autre secret, sans signature (`alg: none`), ou liés à un compte inexistant ou inactif : refusés (testé).
+- Réponse de connexion identique pour un email inconnu et un mauvais mot de passe, avec hachage factice pour égaliser le temps de calcul ; blocage après 5 échecs (en mémoire, limites dans API_SPECIFICATION).
+- Aucune image conservée ni journalisée ; journaux d'erreur sans trace ni données utilisateur.
+- À faire : HTTPS et en-têtes de sécurité (déploiement), CORS explicite en production, rotation du secret JWT, limitation de débit globale, purge automatique, sauvegardes, audit des dépendances.
+
 ## 7. Checklist avant publication
 
-- [ ] Aucun secret dans Git.
-- [ ] Upload limité et validé.
-- [ ] Autorisation testée pour les analyses privées.
+- [x] Aucun secret dans Git (vérifié le 2026-10-27 : seul `backend/.env.example` est suivi ; les `.env` sont ignorés). À revérifier avant chaque publication.
+- [x] Upload limité et validé (taille, type réel, décodage ; testé).
+- [x] Autorisation testée pour les analyses privées (PostgreSQL 16 : lecture, liste et suppression croisées refusées).
 - [ ] HTTPS activé.
 - [ ] CORS configuré explicitement.
 - [ ] Politique de conservation et suppression documentée.
 - [ ] Dépendances vérifiées.
 - [ ] Sauvegarde et restauration testées.
-- [ ] Messages d'erreur sans détails internes.
+- [x] Messages d'erreur sans détails internes (testé : erreur 500 générique).
 
 ## Documents liés
 

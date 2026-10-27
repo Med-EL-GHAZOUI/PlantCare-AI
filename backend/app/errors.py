@@ -31,11 +31,11 @@ def register_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def handle_validation_error(_: Request, __: RequestValidationError) -> JSONResponse:
-        return error_response(422, "invalid_request", "Requête invalide : le champ 'image' (fichier) est obligatoire.")
+        return error_response(422, "invalid_request", "Requête invalide : champ manquant ou mal formé.")
 
     @app.exception_handler(StarletteHTTPException)
     async def handle_http_exception(_: Request, exc: StarletteHTTPException) -> JSONResponse:
-        codes = {404: "not_found", 405: "method_not_allowed"}
+        codes = {401: "not_authenticated", 404: "not_found", 405: "method_not_allowed"}
         return error_response(exc.status_code, codes.get(exc.status_code, "http_error"), "Requête non satisfaite.")
 
     @app.exception_handler(Exception)
