@@ -52,6 +52,31 @@ Conséquence : l'usage académique (PFE) est raisonnable, mais **l'usage commerc
 
 Bacterial spot, Early blight, Late blight, Leaf Mold, Septoria leaf spot, Spider mites (two-spotted), Target Spot, Yellow Leaf Curl Virus, Mosaic virus, healthy. Les effectifs varient selon la source (par ex. healthy : 1 589 à 1 591) ; les effectifs réels seront mesurés après téléchargement.
 
+### Inventaire mesuré (2026-10-27)
+
+Source : dépôt spMohanty, commit `7f7ecc7e1eaca78107e3affe7cb5abd9427e139a`, `raw/color/Tomato___*`, 324 Mo, dans `ml/data/raw/plantvillage_tomato/` (non versionné). Mesuré avec `ml/scripts/inspect_dataset.py`.
+
+| Classe | Images |
+|---|---|
+| Bacterial spot | 2 127 |
+| Early blight | 1 000 |
+| Late blight | 1 909 |
+| Leaf Mold | 952 |
+| Septoria leaf spot | 1 771 |
+| Spider mites (two-spotted) | 1 676 |
+| Target Spot | 1 404 |
+| Yellow Leaf Curl Virus | 5 357 |
+| Mosaic virus | 373 |
+| healthy | 1 591 |
+| **Total** | **18 160** |
+
+- Images corrompues : 0. Toutes en JPEG, RGB, 256×256.
+- Doublons exacts (SHA-256) : 14 groupes, 14 images redondantes, aucun entre classes différentes. Les quasi-doublons (hash perceptuel `dhash` du manifeste) ne sont pas encore analysés.
+- Déséquilibre marqué : de 373 (mosaic virus) à 5 357 (yellow leaf curl) images. Il faudra suivre le F1 par classe et envisager des poids de classes.
+- Biais connu : images prises en conditions contrôlées, sur fond uniforme ; les performances sur photos de terrain ne sont pas démontrées.
+
+Commande, depuis `ml/` : `.venv\Scripts\python.exe scripts/inspect_dataset.py data/raw/plantvillage_tomato --manifest data/manifest.csv`
+
 ## 4 ter. Plan de téléchargement et de découpage (proposé)
 
 1. **Source** : copier la version non augmentée (dossier `color`) via le dépôt spMohanty ou TFDS, enregistrer l'URL, le commit/la version, la date et le hash SHA-256 de l'archive. Les données vont dans `ml/data/raw/` (ignoré par Git).
