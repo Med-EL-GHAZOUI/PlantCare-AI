@@ -18,7 +18,8 @@ venv/
 .mypy_cache/
 
 # ML (données et modèles volumineux)
-ml/data/
+ml/data/*
+!ml/data/splits/
 *.h5
 *.keras
 *.ckpt

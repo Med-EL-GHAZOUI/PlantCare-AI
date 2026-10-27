@@ -77,6 +77,17 @@ Source : dépôt spMohanty, commit `7f7ecc7e1eaca78107e3affe7cb5abd9427e139a`, `
 
 Commande, depuis `ml/` : `.venv\Scripts\python.exe scripts/inspect_dataset.py data/raw/plantvillage_tomato --manifest data/manifest.csv`
 
+### Découpage réalisé (2026-10-27)
+
+Script : `ml/scripts/split_dataset.py` (graine 42, ratios 70/15/15). Depuis `ml/` :
+`.venv\Scripts\python.exe scripts/split_dataset.py --manifest data/manifest.csv --out-dir data/splits`
+
+- Groupes : union des doublons exacts (SHA-256) et des images dont le `dhash` diffère d'au plus **2 bits**. Seuil choisi après mesure sur le manifeste complet : à 0 bit, 14 groupes multiples ; à 2 bits, 23 ; à 4 bits, 57 dont 3 mêlant des classes différentes ; à 6 bits, 179 dont 28. Le seuil 2 évite les regroupements de classes différentes. Le seuil n'a pas été réglé sur le test.
+- Résultat : train 12 712, val 2 727, test 2 721 images ; chaque classe est présente dans les trois ensembles (par exemple mosaic virus : 261 / 56 / 56). Détail dans `ml/data/splits/split_report.json`.
+- Reproductibilité : deux exécutions successives produisent des fichiers CSV identiques (comparaison octet à octet).
+- Les fichiers `train.csv`, `val.csv`, `test.csv` (chemin, classe, groupe) sont versionnés ; les images ne le sont pas.
+- **Limite connue** : le hash perceptuel ne détecte que les images très proches. Des photos différentes de la même feuille (autre angle) ne sont pas regroupées, donc une fuite résiduelle est possible et les scores sur PlantVillage peuvent être optimistes. L'évaluation sur des images indépendantes reste nécessaire.
+
 ## 4 ter. Plan de téléchargement et de découpage (proposé)
 
 1. **Source** : copier la version non augmentée (dossier `color`) via le dépôt spMohanty ou TFDS, enregistrer l'URL, le commit/la version, la date et le hash SHA-256 de l'archive. Les données vont dans `ml/data/raw/` (ignoré par Git).
