@@ -151,6 +151,33 @@ Confusions principales : early blight pris pour target spot (14 sur 150) ou late
 
 Limites : une seule exécution et un seul découpage, sans intervalle de confiance ; les classes à faible effectif (mosaic virus : 56 images) donnent des estimations bruitées. Le test provient de PlantVillage (même distribution que l'entraînement, fuite résiduelle possible entre photos d'une même feuille, voir DATASET_CARD) : **ces scores ne prouvent pas la performance sur des photos de terrain**, qui reste à mesurer avec des images indépendantes. Latence et calibration : non mesurées.
 
+### Seuil d'incertitude — analyse sur la **validation** (2026-10-27)
+
+Méthode : `ml/scripts/threshold_analysis.py` (fonctions dans `ml/agriscan_ml/selective.py`, 5 tests). Pour chaque seuil de 0,00 à 0,99 (pas de 0,01), une image est « répondue » si son score softmax maximal est ≥ seuil, sinon « incertaine ». On mesure la **couverture** (part répondue) et la **précision sélective** (accuracy sur les images répondues, intervalle de Wilson à 95 %). Les 2 727 images de validation ont été utilisées ; **le test n'est pas lu** par le script. Fichiers produits (non versionnés) : `artifacts/mobilenetv2/threshold_curve_val.csv` et `threshold_val.json`.
+
+| Seuil | Couverture | Précision sélective [IC 95 %] | Erreurs gardées |
+|---|---|---|---|
+| 0,00 (aucun) | 1,000 | 0,9391 [0,930 ; 0,947] | 166 |
+| 0,50 | 0,985 | 0,9464 [0,937 ; 0,954] | 144 |
+| 0,60 | 0,961 | 0,9592 [0,951 ; 0,966] | 107 |
+| 0,70 | 0,926 | 0,9719 [0,965 ; 0,978] | 71 |
+| **0,80** | **0,887** | **0,9806 [0,974 ; 0,985]** | **47** |
+| 0,85 | 0,865 | 0,9852 [0,979 ; 0,989] | 35 |
+| 0,90 | 0,827 | 0,9902 [0,985 ; 0,994] | 22 |
+| 0,95 | 0,761 | 0,9933 [0,989 ; 0,996] | 14 |
+| 0,98 | 0,675 | 0,9962 [0,992 ; 0,998] | 7 |
+| 0,99 | 0,606 | 0,9982 [0,995 ; 0,999] | 3 |
+
+Règle fixée avant de lire la courbe : plus petit seuil dont la précision sélective atteint 0,97 avec une couverture ≥ 0,80. Résultat brut : **0,69** (couverture 0,931, précision 0,9712, IC95 [0,964 ; 0,977]).
+
+**Seuil proposé : 0,80.** Le seuil 0,69 atteint la cible de 0,97 avec 0,0012 de marge seulement, sur un seul découpage : il est instable. Arrondir à 0,80 donne une marge nette (précision sélective 0,981, soit 47 erreurs gardées contre 166 sans seuil) pour 11,3 % d'images déclarées incertaines. C'est un choix de produit modifiable : 0,90 donnerait 0,990 de précision pour 17,3 % d'incertitudes.
+
+Coût par classe à 0,69 (couverture de chaque classe) : early blight 0,787 (la plus touchée, c'est aussi la plus faible du modèle), bacterial spot 0,887, septoria 0,891, contre 0,981 pour yellow leaf curl virus et 0,987 pour healthy. À 0,80, davantage d'images de ces classes passeraient en « incertain ».
+
+Limites : (1) la validation a servi à l'arrêt anticipé et au choix du seuil, donc la précision sélective annoncée est légèrement optimiste ; elle doit être **confirmée une fois sur le test** avant de la citer comme résultat final, et sur des images de terrain. (2) Le score softmax n'est pas calibré (aucune évaluation de calibration) : le seuil est un point de fonctionnement empirique, pas une probabilité de 80 %. (3) Ce seuil ne détecte **pas** les images hors périmètre : une photo qui n'est pas une feuille de tomate peut obtenir un score élevé. (4) Il filtre des cas incertains sur PlantVillage, pas nécessairement sur des photos de terrain.
+
+Activation dans l'API : `AGRISCAN_CONFIDENCE_THRESHOLD=0.80` (désactivé par défaut tant que le choix n'est pas validé).
+
 Lecture prudente : ces chiffres proviennent d'une seule exécution, de la validation PlantVillage (conditions contrôlées, fuite résiduelle possible, voir DATASET_CARD) et d'un modèle volontairement simple. Ils ne mesurent pas la performance sur des photos de terrain. Les rangs de confusion servent de point de départ pour comparer MobileNetV2. Précision/rappel/F1 test, latence et calibration restent « À mesurer ».
 
 ## 7. Incertitude et limites
