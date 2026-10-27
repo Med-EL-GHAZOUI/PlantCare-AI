@@ -95,6 +95,36 @@ Entraînement réel sur CPU Windows (`scripts/train_baseline.py --train`, graine
 
 Confusions principales (matrice complète : `artifacts/baseline/confusion_val.csv`, non versionnée) : early blight pris pour target spot (35 sur 150) ; late blight pris pour spider mites (37) ; yellow leaf curl virus pris pour spider mites (69) ou bacterial spot (32) ; target spot pris pour healthy (38).
 
+### MobileNetV2 (transfer learning) — résultats sur la **validation** (2026-10-27)
+
+Code : `ml/agriscan_ml/models.py` (`build_mobilenetv2`, `unfreeze_for_finetuning`), `ml/scripts/train_mobilenet.py`. Entrée 224×224 RGB ; conversion `x/127.5 − 1` dans le modèle ; poids ImageNet de Keras (`mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224_no_top.h5`). Graine 42, CPU Windows.
+
+- Phase 1 : base gelée, tête seule (12 810 paramètres entraînables), lr 1e-3, 6 époques (val_accuracy 0,804 → 0,867).
+- Phase 2 : 19 couches finales dégelées (les BatchNorm restent gelées), lr 1e-5, 10 époques (val_accuracy 0,896 → 0,939). La perte de validation baissait encore à la dernière époque (0,181) : l'entraînement s'est arrêté au maximum d'époques fixé, pas par convergence.
+- Poids de classes équilibrés ; augmentation sur l'entraînement uniquement.
+
+| Métrique (validation) | Baseline CNN | MobileNetV2 |
+|---|---|---|
+| Accuracy | 0,7825 | **0,9391** |
+| Macro-F1 | 0,7450 | **0,9211** |
+
+| Classe | Précision | Rappel | F1 | Support |
+|---|---|---|---|---|
+| Bacterial spot | 0,942 | 0,915 | 0,928 | 319 |
+| Early blight | 0,897 | 0,693 | 0,782 | 150 |
+| Late blight | 0,934 | 0,944 | 0,939 | 287 |
+| Leaf Mold | 0,944 | 0,937 | 0,940 | 143 |
+| Septoria leaf spot | 0,911 | 0,929 | 0,920 | 266 |
+| Spider mites | 0,939 | 0,913 | 0,926 | 252 |
+| Target Spot | 0,799 | 0,962 | 0,873 | 211 |
+| Yellow Leaf Curl Virus | 0,996 | 0,980 | 0,988 | 804 |
+| Mosaic virus | 0,915 | 0,964 | 0,939 | 56 |
+| healthy | 0,956 | 0,996 | 0,975 | 239 |
+
+Principales confusions restantes : early blight pris pour target spot (17 sur 150) ou late blight (11) ; spider mites pris pour target spot (13). Early blight reste la classe la plus faible (rappel 0,693).
+
+Précautions : une seule exécution, validation PlantVillage uniquement (fond uniforme, fuite résiduelle possible), aucun intervalle de confiance. La validation a servi à l'arrêt anticipé ; le choix final du modèle doit donc être confirmé sur le **test**, qui n'a pas été utilisé. Non mesuré : performance sur photos de terrain, latence, calibration.
+
 Lecture prudente : ces chiffres proviennent d'une seule exécution, de la validation PlantVillage (conditions contrôlées, fuite résiduelle possible, voir DATASET_CARD) et d'un modèle volontairement simple. Ils ne mesurent pas la performance sur des photos de terrain. Les rangs de confusion servent de point de départ pour comparer MobileNetV2. Précision/rappel/F1 test, latence et calibration restent « À mesurer ».
 
 ## 7. Incertitude et limites
