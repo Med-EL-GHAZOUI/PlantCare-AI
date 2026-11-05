@@ -286,3 +286,45 @@ def evaluate_field(
             "by_label": by_label,
         }
     return result
+
+
+# ---------------------------------------------------------------- suivi de la collecte
+
+
+def progress_summary(rows: list[dict[str, str]], class_names: list[str]) -> dict:
+    """État d'avancement de la collecte par rapport aux repères du protocole (30 images, 10 plantes par classe)."""
+    per_class = {}
+    for name in class_names:
+        selected = [r for r in rows if r["label"] == name]
+        subjects = {r["subject_id"] for r in selected}
+        per_class[name] = {
+            "images": len(selected),
+            "subjects": len(subjects),
+            "images_missing": max(0, MIN_IMAGES_PER_CLASS - len(selected)),
+            "subjects_missing": max(0, MIN_SUBJECTS_PER_CLASS - len(subjects)),
+            "done": len(selected) >= MIN_IMAGES_PER_CLASS and len(subjects) >= MIN_SUBJECTS_PER_CLASS,
+        }
+    ood = {label: sum(1 for r in rows if r["label"] == label) for label in OOD_LABELS}
+    coverage = {
+        column: dict(sorted(Counter(r[column] for r in rows).items()))
+        for column in ("site", "device", "lighting", "background", "split", "label_certainty")
+    }
+    return {
+        "images": len(rows),
+        "subjects": len({r["subject_id"] for r in rows}),
+        "per_class": per_class,
+        "classes_done": sum(1 for v in per_class.values() if v["done"]),
+        "out_of_distribution": {**ood, "total": sum(ood.values()), "missing_to_100": max(0, 100 - sum(ood.values()))},
+        "coverage": coverage,
+    }
+
+
+def cohens_kappa(labels_a: list[str], labels_b: list[str]) -> float:
+    """Kappa de Cohen entre deux étiqueteurs (1 = accord parfait, 0 = accord dû au hasard)."""
+    if len(labels_a) != len(labels_b) or not labels_a:
+        raise ValueError("Les deux listes d'étiquettes doivent avoir la même longueur non nulle")
+    total = len(labels_a)
+    observed = sum(a == b for a, b in zip(labels_a, labels_b, strict=True)) / total
+    count_a, count_b = Counter(labels_a), Counter(labels_b)
+    expected = sum(count_a[k] * count_b[k] for k in set(count_a) | set(count_b)) / total**2
+    return 1.0 if expected == 1.0 else (observed - expected) / (1 - expected)

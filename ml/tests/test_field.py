@@ -260,3 +260,34 @@ def test_strip_exif_removes_gps_without_touching_the_source(field_dir) -> None:
         difference = np.abs(np.asarray(a.convert("RGB")).astype(int) - np.asarray(b.convert("RGB")).astype(int)).mean()
     assert difference < 12  # recompression JPEG d'un bruit aléatoire (pire cas) : écart moyen faible
     assert errors_of([make_row("clean/with_gps.jpg")], field_dir) == []
+
+
+def test_progress_summary_counts_images_plants_and_remaining() -> None:
+    from agriscan_ml.field import progress_summary
+
+    rows = [make_row(f"{i}.jpg", label="a", subject_id=f"p{i // 3}") for i in range(30)]  # 30 images, 10 plantes
+    rows += [make_row("b1.jpg", label="b", subject_id="q1"), make_row("b2.jpg", label="b", subject_id="q1")]
+    rows += [make_row("o1.jpg", label="out_of_scope"), make_row("o2.jpg", label="other_disease", site="serre-2")]
+    summary = progress_summary(rows, CLASSES)
+
+    assert summary["per_class"]["a"]["done"] is True and summary["per_class"]["a"]["images_missing"] == 0
+    assert summary["per_class"]["b"] == {"images": 2, "subjects": 1, "images_missing": 28, "subjects_missing": 9, "done": False}
+    assert summary["per_class"]["c"]["images"] == 0 and summary["classes_done"] == 1
+    assert summary["out_of_distribution"] == {"out_of_scope": 1, "other_disease": 1, "total": 2, "missing_to_100": 98}
+    assert summary["coverage"]["site"] == {"serre-1": 33, "serre-2": 1}
+    assert summary["images"] == 34
+
+
+def test_cohens_kappa_known_values() -> None:
+    from agriscan_ml.field import cohens_kappa
+
+    same = ["a", "b", "a", "c"]
+    assert cohens_kappa(same, same) == pytest.approx(1.0)
+    # Exemple classique : accord observé 0,7, accord attendu 0,5 -> kappa = 0,4
+    a = ["oui"] * 50 + ["non"] * 50
+    b = ["oui"] * 35 + ["non"] * 15 + ["oui"] * 15 + ["non"] * 35
+    assert cohens_kappa(a, b) == pytest.approx(0.4)
+    assert cohens_kappa(["a", "b"], ["b", "a"]) == pytest.approx(-1.0)
+    assert cohens_kappa(["a", "a"], ["a", "a"]) == 1.0  # un seul label : accord parfait, pas de division par zéro
+    with pytest.raises(ValueError):
+        cohens_kappa(["a"], [])

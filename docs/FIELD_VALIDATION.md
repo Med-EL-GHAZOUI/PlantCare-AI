@@ -37,7 +37,7 @@
 
 Plus de plantes vaut mieux que plus de photos par plante : les photos d'une même plante sont corrélées. Les classes rares (virus de la mosaïque, par exemple) peuvent ne pas atteindre le repère : le rapport doit alors dire « non évaluable de façon fiable » plutôt que donner un chiffre.
 
-**Consignes de prise de vue** : [field/TEMPLATES.md](field/TEMPLATES.md), section 2.
+**Consignes de prise de vue** : [field/TEMPLATES.md](field/TEMPLATES.md), section 2. **Planning, quotas, routine quotidienne et messages types** : [field/COLLECTION_PLAN.md](field/COLLECTION_PLAN.md).
 
 ## 4. Préparer et contrôler les données
 
@@ -98,7 +98,7 @@ Plan : contexte et dates ; sources, sites, appareils, effectifs par classe et pa
 
 ## 8. Vérifications réelles de l'outillage
 
-- `pytest` dans `ml/` : **66 tests réussis**, dont 30 pour cette phase (validation du manifeste : consentement, valeurs invalides, fichiers manquants/corrompus/trop petits, GPS, doublons exacts, fuite PlantVillage exacte et quasi-doublon, plante en `dev` et `test` ; métriques sur des cas calculés à la main : accuracy, précision/rappel, macro-F1 des classes présentes, précision sélective et couverture, fausses acceptations hors périmètre, bootstrap par plante déterministe, signalement des groupes à faible effectif, nettoyage EXIF). `ruff` sans remarque.
+- `pytest` dans `ml/` : **68 tests réussis**, dont 32 pour cette phase (validation du manifeste : consentement, valeurs invalides, fichiers manquants/corrompus/trop petits, GPS, doublons exacts, fuite PlantVillage exacte et quasi-doublon, plante en `dev` et `test` ; métriques sur des cas calculés à la main : accuracy, précision/rappel, macro-F1 des classes présentes, précision sélective et couverture, fausses acceptations hors périmètre, bootstrap par plante déterministe, signalement des groupes à faible effectif, nettoyage EXIF, résumé de progression, kappa de Cohen sur valeurs connues). `ruff` sans remarque.
 - Essai de bout en bout avec le **vrai modèle** sur un jeu de **bruit synthétique** (36 images, aucune valeur agronomique) : le validateur accepte le jeu sain, rejette une image copiée de PlantVillage (doublon exact et quasi-doublon), l'évaluation `dev` produit le rapport, `test` sans `--final` est refusé, `test --final` s'exécute une fois puis refuse de se relancer, et un manifeste invalide bloque l'évaluation. Les chiffres de ce jeu (accuracy 0) n'ont aucun sens et ne doivent pas être cités.
 
 ## 9. Limites de l'outillage
@@ -106,5 +106,5 @@ Plan : contexte et dates ; sources, sites, appareils, effectifs par classe et pa
 - Les images sont lues à pleine résolution puis redimensionnées à 224 px comme à l'entraînement ; l'application réduit d'abord à 1024 px et recompresse en JPEG (qualité 90). L'écart n'est pas mesuré.
 - L'intervalle par plante suppose des plantes indépendantes ; deux plantes voisines d'un même site restent corrélées (effet de site non corrigé : voir la ventilation par site).
 - Le validateur détecte les quasi-doublons à 2 bits d'écart seulement : une photo différente d'une feuille PlantVillage n'est pas repérée.
-- Les étiquettes dépendent de l'expert ; l'accord entre étiqueteurs n'est pas calculé par les scripts (à faire à part si deux experts étiquettent).
+- Les étiquettes dépendent de l'expert ; l'accord entre deux étiqueteurs se calcule avec `scripts/label_agreement.py` (kappa de Cohen, liste des désaccords) à partir d'un CSV `path,label` du second expert, rempli en aveugle. Le suivi de la collecte se fait avec `scripts/field_progress.py`.
 - Aucune évaluation de la **calibration** n'est faite ; le score reste « score du modèle », pas une probabilité.
