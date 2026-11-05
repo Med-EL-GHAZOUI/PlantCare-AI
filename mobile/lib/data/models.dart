@@ -174,3 +174,12 @@ class AnalysisPage {
     );
   }
 }
+
+/// Image PNG annotée renvoyée par `POST /api/v1/predictions/annotated-image`.
+class ExportedImage {
+  const ExportedImage({required this.bytes, required this.predictionId, required this.watermarkApplied});
+
+  final Uint8List bytes;
+  final String? predictionId;
+  final bool watermarkApplied;
+}

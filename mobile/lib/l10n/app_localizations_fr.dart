@@ -314,4 +314,28 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get errorAccountsUnavailable =>
       'Les comptes et l\'historique sont momentanément indisponibles.';
+
+  @override
+  String get exportTitle => 'Exporter le résultat';
+
+  @override
+  String get exportButton => 'Exporter l\'image annotée';
+
+  @override
+  String get exportingLabel => 'Préparation de l\'image…';
+
+  @override
+  String get exportWatermarkOption => 'Ajouter le filigrane « AgriScan AI »';
+
+  @override
+  String get exportNote =>
+      'L\'image exportée contient la photo, le résultat, le score du modèle et la mention « pas un diagnostic confirmé ». Le filigrane indique la provenance, il ne prouve pas l\'authenticité. Le texte de l\'image est en français sans accents et le nom de la classe est en anglais. Le serveur ne conserve pas l\'image ; vous choisissez où la partager.';
+
+  @override
+  String get exportShareText =>
+      'Résultat de dépistage AgriScan AI (aide au dépistage, pas un diagnostic confirmé)';
+
+  @override
+  String get errorShareFailed =>
+      'Impossible d\'ouvrir le partage sur cet appareil. Réessayez.';
 }

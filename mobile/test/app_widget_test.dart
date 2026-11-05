@@ -23,6 +23,8 @@ Future<AppServices> pumpApp(
   Locale? locale = const Locale('fr'),
   FakeAccountApi? accountApi,
   MemoryTokenStore? tokenStore,
+  FakeExportApi? exportApi,
+  FakeImageShare? share,
 }) async {
   tester.view.physicalSize = const Size(900, 2200);
   tester.view.devicePixelRatio = 1.0;
@@ -32,6 +34,8 @@ Future<AppServices> pumpApp(
   final services = AppServices.assemble(
     accountApi: accountApi ?? FakeAccountApi(),
     predictionApi: api,
+    exportApi: exportApi ?? FakeExportApi(),
+    imageShare: share ?? FakeImageShare(),
     tokenStore: tokenStore ?? MemoryTokenStore(),
     imageSource: source ?? FakeImageSource(image: sampleImage()),
     locale: LocaleController(locale),

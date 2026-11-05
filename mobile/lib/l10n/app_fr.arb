@@ -122,5 +122,12 @@
   "errorTooManyAttempts": "Trop de tentatives. Réessayez dans quelques minutes.",
   "errorNotFound": "Cette analyse est introuvable (elle a peut-être déjà été supprimée).",
   "errorInvalidInput": "Les informations saisies ne sont pas valides.",
-  "errorAccountsUnavailable": "Les comptes et l'historique sont momentanément indisponibles."
+  "errorAccountsUnavailable": "Les comptes et l'historique sont momentanément indisponibles.",
+  "exportTitle": "Exporter le résultat",
+  "exportButton": "Exporter l'image annotée",
+  "exportingLabel": "Préparation de l'image…",
+  "exportWatermarkOption": "Ajouter le filigrane « AgriScan AI »",
+  "exportNote": "L'image exportée contient la photo, le résultat, le score du modèle et la mention « pas un diagnostic confirmé ». Le filigrane indique la provenance, il ne prouve pas l'authenticité. Le texte de l'image est en français sans accents et le nom de la classe est en anglais. Le serveur ne conserve pas l'image ; vous choisissez où la partager.",
+  "exportShareText": "Résultat de dépistage AgriScan AI (aide au dépistage, pas un diagnostic confirmé)",
+  "errorShareFailed": "Impossible d'ouvrir le partage sur cet appareil. Réessayez."
 }

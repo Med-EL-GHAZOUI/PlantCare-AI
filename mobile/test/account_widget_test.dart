@@ -19,6 +19,8 @@ Future<AppServices> pumpApp(
   FakeAccountApi? accountApi,
   FakePredictionApi? predictionApi,
   MemoryTokenStore? tokenStore,
+  FakeExportApi? exportApi,
+  FakeImageShare? share,
   Locale locale = const Locale('fr'),
   int pageSize = 20,
 }) async {
@@ -30,6 +32,8 @@ Future<AppServices> pumpApp(
   final services = AppServices.assemble(
     accountApi: accountApi ?? FakeAccountApi(),
     predictionApi: predictionApi ?? FakePredictionApi(result: samplePrediction()),
+    exportApi: exportApi ?? FakeExportApi(),
+    imageShare: share ?? FakeImageShare(),
     tokenStore: tokenStore ?? MemoryTokenStore(),
     imageSource: FakeImageSource(image: sampleImage()),
     locale: LocaleController(locale),

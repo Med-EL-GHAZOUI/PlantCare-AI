@@ -303,4 +303,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get errorAccountsUnavailable => 'الحسابات والسجل غير متاحة مؤقتًا.';
+
+  @override
+  String get exportTitle => 'تصدير النتيجة';
+
+  @override
+  String get exportButton => 'تصدير الصورة مع الشرح';
+
+  @override
+  String get exportingLabel => 'جارٍ تجهيز الصورة…';
+
+  @override
+  String get exportWatermarkOption => 'إضافة علامة «AgriScan AI» المائية';
+
+  @override
+  String get exportNote =>
+      'تحتوي الصورة المصدَّرة على الصورة والنتيجة ودرجة النموذج وعبارة «ليست تشخيصًا مؤكدًا». تدل العلامة المائية على المصدر ولا تثبت الأصالة. نص الصورة بالفرنسية (من دون الحروف المُعلَّمة) واسم الفئة بالإنجليزية. لا يحتفظ الخادم بالصورة، وأنت من يختار وجهة المشاركة.';
+
+  @override
+  String get exportShareText =>
+      'نتيجة كشف أولي من AgriScan AI (مساعدة على الكشف وليست تشخيصًا مؤكدًا)';
+
+  @override
+  String get errorShareFailed =>
+      'تعذّر فتح المشاركة على هذا الجهاز. أعد المحاولة.';
 }

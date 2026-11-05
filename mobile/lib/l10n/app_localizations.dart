@@ -625,6 +625,48 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Les comptes et l\'historique sont momentanément indisponibles.'**
   String get errorAccountsUnavailable;
+
+  /// No description provided for @exportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter le résultat'**
+  String get exportTitle;
+
+  /// No description provided for @exportButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter l\'image annotée'**
+  String get exportButton;
+
+  /// No description provided for @exportingLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préparation de l\'image…'**
+  String get exportingLabel;
+
+  /// No description provided for @exportWatermarkOption.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter le filigrane « AgriScan AI »'**
+  String get exportWatermarkOption;
+
+  /// No description provided for @exportNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'image exportée contient la photo, le résultat, le score du modèle et la mention « pas un diagnostic confirmé ». Le filigrane indique la provenance, il ne prouve pas l\'authenticité. Le texte de l\'image est en français sans accents et le nom de la classe est en anglais. Le serveur ne conserve pas l\'image ; vous choisissez où la partager.'**
+  String get exportNote;
+
+  /// No description provided for @exportShareText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultat de dépistage AgriScan AI (aide au dépistage, pas un diagnostic confirmé)'**
+  String get exportShareText;
+
+  /// No description provided for @errorShareFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir le partage sur cet appareil. Réessayez.'**
+  String get errorShareFailed;
 }
 
 class _AppLocalizationsDelegate

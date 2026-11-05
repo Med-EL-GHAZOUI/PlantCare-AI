@@ -6,6 +6,7 @@ import 'package:agriscan_mobile/data/account_api.dart';
 import 'package:agriscan_mobile/data/models.dart';
 import 'package:agriscan_mobile/data/token_store.dart';
 import 'package:agriscan_mobile/data/prediction_api.dart';
+import 'package:agriscan_mobile/logic/image_share_service.dart';
 import 'package:agriscan_mobile/logic/image_source_service.dart';
 
 /// PNG valide de 1×1 pixel (pour Image.memory dans les tests).
@@ -210,5 +211,42 @@ class FakeAccountApi implements AccountApi {
     final before = records.length;
     records.removeWhere((r) => r.id == id);
     if (records.length == before) throw const ApiFailure(FailureKind.notFound);
+  }
+}
+
+/// API d'export pilotable : renvoie un PNG valide (1×1) et mémorise les demandes.
+class FakeExportApi implements ExportApi {
+  ApiFailure? failure;
+  Completer<ExportedImage>? completer;
+  final List<bool> watermarkRequests = [];
+  final List<PickedImage> images = [];
+
+  @override
+  Future<ExportedImage> exportAnnotated(PickedImage image, {bool watermark = true}) async {
+    watermarkRequests.add(watermark);
+    images.add(image);
+    if (completer != null) return completer!.future;
+    if (failure != null) throw failure!;
+    return ExportedImage(bytes: tinyPng, predictionId: 'p-1', watermarkApplied: watermark);
+  }
+}
+
+class SharedImage {
+  SharedImage(this.bytes, this.filename, this.text);
+
+  final Uint8List bytes;
+  final String filename;
+  final String text;
+}
+
+/// Partage simulé : mémorise ce qui serait envoyé à la feuille de partage système.
+class FakeImageShare implements ImageShareService {
+  ApiFailure? failure;
+  final List<SharedImage> shared = [];
+
+  @override
+  Future<void> shareImage(Uint8List bytes, {required String filename, required String text}) async {
+    if (failure != null) throw failure!;
+    shared.add(SharedImage(bytes, filename, text));
   }
 }

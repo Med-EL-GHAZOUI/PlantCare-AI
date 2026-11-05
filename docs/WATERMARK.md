@@ -11,7 +11,7 @@
 | Image envoyée par l'utilisateur | **jamais** | reste inchangée |
 | Entrée du modèle, réponses JSON, historique | **jamais** | aucun filigrane |
 
-L'application mobile n'utilise pas encore l'export.
+L'application mobile propose l'export depuis l'écran de résultat (voir [MOBILE.md](MOBILE.md), section 4 ter) : option « Ajouter le filigrane » (activée par défaut) puis partage de l'image par la feuille de partage du système.
 
 ## 2. Critères d'acceptation et vérification
 

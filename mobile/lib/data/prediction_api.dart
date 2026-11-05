@@ -11,7 +11,13 @@ abstract class PredictionApi {
   Future<Prediction> predict(PickedImage image, {String? accessToken});
 }
 
-class HttpPredictionApi implements PredictionApi {
+abstract class ExportApi {
+  /// Image annotée (résultat + filigrane optionnel). Le serveur refait l'inférence sur l'image envoyée,
+  /// ne stocke rien et renvoie un PNG.
+  Future<ExportedImage> exportAnnotated(PickedImage image, {bool watermark = true});
+}
+
+class HttpPredictionApi implements PredictionApi, ExportApi {
   HttpPredictionApi({
     required this.baseUrl,
     http.Client? client,
@@ -30,18 +36,22 @@ class HttpPredictionApi implements PredictionApi {
     return null;
   }
 
-  @override
-  Future<Prediction> predict(PickedImage image, {String? accessToken}) async {
+  http.MultipartRequest _multipartRequest(String path, PickedImage image, {Map<String, String>? query}) {
     final contentType = contentTypeFor(image.name);
     if (contentType == null) throw const ApiFailure(FailureKind.unsupportedFormat);
-
-    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/api/v1/predictions'))
+    final uri = Uri.parse('$baseUrl$path').replace(queryParameters: query);
+    return http.MultipartRequest('POST', uri)
       ..files.add(http.MultipartFile.fromBytes(
         'image',
         image.bytes,
         filename: image.name,
         contentType: MediaType.parse(contentType),
       ));
+  }
+
+  @override
+  Future<Prediction> predict(PickedImage image, {String? accessToken}) async {
+    final request = _multipartRequest('/api/v1/predictions', image);
     if (accessToken != null) request.headers['Authorization'] = 'Bearer $accessToken';
 
     final response = await sendGuarded(
@@ -50,6 +60,33 @@ class HttpPredictionApi implements PredictionApi {
     );
     if (response.statusCode == 200) return decodeBody(response, Prediction.fromJson);
     throw failureFromResponse(response);
+  }
+
+  static const _pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+
+  @override
+  Future<ExportedImage> exportAnnotated(PickedImage image, {bool watermark = true}) async {
+    final request = _multipartRequest(
+      '/api/v1/predictions/annotated-image',
+      image,
+      query: {'watermark': watermark ? 'true' : 'false'},
+    );
+    final response = await sendGuarded(
+      () async => http.Response.fromStream(await _client.send(request)),
+      timeout,
+    );
+    if (response.statusCode != 200) throw failureFromResponse(response);
+
+    final bytes = response.bodyBytes;
+    final isPng = bytes.length > _pngSignature.length &&
+        response.headers['content-type']?.startsWith('image/png') == true &&
+        List.generate(_pngSignature.length, (i) => bytes[i] == _pngSignature[i]).every((ok) => ok);
+    if (!isPng) throw ApiFailure(FailureKind.invalidResponse, statusCode: response.statusCode);
+    return ExportedImage(
+      bytes: bytes,
+      predictionId: response.headers['x-prediction-id'],
+      watermarkApplied: response.headers['x-watermark'] == 'applied',
+    );
   }
 
   void close() => _client.close();

@@ -6,6 +6,7 @@ import '../logic/analysis_controller.dart';
 import '../logic/image_source_service.dart';
 import '../logic/session_controller.dart';
 import 'auth_screen.dart';
+import 'export_card.dart';
 import 'history_screen.dart';
 import 'localized_text.dart';
 import 'result_view.dart';
@@ -211,6 +212,10 @@ class _Body extends StatelessWidget {
               padding: const EdgeInsets.only(top: 8),
               child: Text(l10n.savedToHistory, key: const Key('saved_note'), style: Theme.of(context).textTheme.bodySmall),
             ),
+          if (controller.image != null) ...[
+            const SizedBox(height: 8),
+            ExportCard(controller: services.export, image: controller.image!),
+          ],
           const SizedBox(height: 8),
           const DisclaimerCard(),
           const SizedBox(height: 8),

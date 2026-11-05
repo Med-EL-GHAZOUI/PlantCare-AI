@@ -8,6 +8,7 @@ Implémenté :
 - choix d'une photo (caméra ou galerie), validation locale, envoi à `POST /api/v1/predictions`, affichage du résultat, du statut incertain et des erreurs ;
 - français et arabe avec RTL ;
 - **connexion et inscription**, jeton conservé dans le **stockage sécurisé** de l'appareil (Android Keystore / iOS Keychain via `flutter_secure_storage`), reprise automatique de la session au démarrage, déconnexion, suppression du compte (avec confirmation) ;
+- **export de l'image annotée** avec filigrane optionnel et partage par la feuille de partage du système (voir section 4 ter) ;
 - **historique** paginé des analyses de l'utilisateur, **détail** d'une analyse et **suppression** (avec confirmation) ; les analyses faites en étant connecté sont ajoutées à l'historique côté serveur, jamais la photo.
 
 **Non implémenté** : mémorisation de la langue, mode hors ligne (l'historique n'est pas mis en cache), réinitialisation de mot de passe et vérification d'e-mail (absentes aussi de l'API), iOS testé sur appareil, publication sur les stores.
@@ -35,6 +36,9 @@ Implémenté :
 | 17 | Historique : liste paginée (« Charger plus »), état vide, erreur avec « Réessayer », classes traduites, incertain sans classe, dates localisées, FR/AR en RTL | tests widget et contrôleur |
 | 18 | Détail d'une analyse rechargé depuis le serveur ; suppression avec confirmation, depuis la liste ou le détail ; déjà supprimée ailleurs = succès | tests widget et contrôleur, intégration |
 | 19 | Le serveur n'expose pas les analyses des autres utilisateurs (404) et l'application ne montre que celles reçues | tests backend (`test_auth_history.py`), pas de logique d'autorisation côté client |
+| 20 | Export : bouton visible seulement après un résultat (réussi ou incertain), option de filigrane activée par défaut et transmise au serveur, PNG validé (signature, type) avant partage, nom de fichier fixe, aucun partage en cas d'échec | `export_controller_test.dart`, `export_api_test.dart`, `export_widget_test.dart` |
+| 21 | Export : états chargement (bouton et option désactivés), erreurs réseau/serveur/partage traduites avec « Réessayer », carte effacée à la nouvelle analyse, FR/AR en RTL | tests widget et contrôleur |
+| 22 | Export : contrat réel avec l'API et le vrai modèle | contrôle ponctuel depuis le client Dart (section 5) |
 
 ## 3. Architecture (interface / logique / réseau séparés)
 
@@ -42,7 +46,7 @@ Implémenté :
 - `lib/logic/` : `AnalysisController` (analyse), `SessionController` (connexion, jeton, expiration), `HistoryController` et `DetailController` (historique), `ImageSourceService`, `LocaleController`. Aucune dépendance aux widgets : tout est testable avec des faux. `app_services.dart` assemble ces objets (production et tests).
 - `lib/ui/` : écrans (`HomeScreen`, `AuthScreen`, `HistoryScreen`, `DetailScreen`) et vues ; les textes viennent de `lib/l10n/*.arb`, jamais en dur.
 - Gestion d'état : `ChangeNotifier` + `ListenableBuilder` (intégrés à Flutter, aucune bibliothèque d'état ajoutée).
-- Dépendances ajoutées : `http` (client HTTP, maintenu par l'équipe Dart), `http_parser` (type MIME du multipart), `image_picker` (caméra/galerie, package officiel Flutter), `intl` et `flutter_localizations` (traductions, formats de nombres arabes), `flutter_secure_storage` (jeton dans le Keystore Android / Keychain iOS ; code natif, version majeure récente à surveiller). `integration_test` (SDK Flutter) en développement uniquement. Coût de maintenance : mises à jour régulières, surtout `image_picker` et `flutter_secure_storage`.
+- Dépendances ajoutées : `http` (client HTTP, maintenu par l'équipe Dart), `http_parser` (type MIME du multipart), `image_picker` (caméra/galerie, package officiel Flutter), `intl` et `flutter_localizations` (traductions, formats de nombres arabes), `flutter_secure_storage` (jeton dans le Keystore Android / Keychain iOS ; code natif, version majeure récente à surveiller), `share_plus` (feuille de partage du système pour l'image exportée ; code natif, version majeure récente à surveiller). `integration_test` (SDK Flutter) en développement uniquement. Coût de maintenance : mises à jour régulières, surtout `image_picker`, `flutter_secure_storage` et `share_plus`.
 - Sécurité du jeton : durée de vie 30 minutes côté serveur, sans jeton de rafraîchissement ; à expiration (401) l'application l'efface et demande une nouvelle connexion. Le jeton n'est jamais journalisé, affiché ni placé dans une URL.
 
 ## 4. Configuration et lancement
@@ -57,7 +61,17 @@ flutter run -d <appareil> --dart-define=API_BASE_URL=http://10.0.2.2:8000
 - `10.0.2.2` = machine hôte vue depuis l'émulateur Android. Sur un vrai téléphone, utiliser l'adresse IP ou le nom de domaine de l'API.
 - Le HTTP en clair n'est autorisé qu'en **debug** (`android/app/src/debug/AndroidManifest.xml`). Les versions release exigent HTTPS.
 - Démarrer l'API avant : `backend/` → `.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000`. Les comptes et l'historique exigent en plus `AGRISCAN_DATABASE_URL` (PostgreSQL migré avec Alembic) et `AGRISCAN_JWT_SECRET` (voir `docs/DATABASE.md`) ; sans eux l'application fonctionne en mode anonyme et affiche « comptes indisponibles ».
-- Tests : `flutter test` (121 tests) ; analyse : `flutter analyze` ; intégration sur émulateur : `flutter test integration_test -d <id> --dart-define=API_BASE_URL=http://10.0.2.2:8000` (l'API doit tourner avec sa base ; le test crée puis supprime son propre compte).
+- Tests : `flutter test` (150 tests) ; analyse : `flutter analyze` ; intégration sur émulateur : `flutter test integration_test -d <id> --dart-define=API_BASE_URL=http://10.0.2.2:8000` (l'API doit tourner avec sa base ; le test crée puis supprime son propre compte).
+
+## 4 ter. Export de l'image annotée (filigrane)
+
+Sur l'écran de résultat, la carte « Exporter le résultat » propose l'option **« Ajouter le filigrane “AgriScan AI” »** (activée par défaut) et le bouton **« Exporter l'image annotée »**. L'application envoie la même photo à `POST /api/v1/predictions/annotated-image?watermark=…` ([WATERMARK.md](WATERMARK.md)), vérifie que la réponse est bien un PNG (type et signature) puis ouvre la **feuille de partage du système** (`share_plus`) : c'est l'utilisateur qui choisit où envoyer ou enregistrer l'image. Le serveur ne conserve rien ; l'export est anonyme et n'est pas ajouté à l'historique.
+
+Points à connaître :
+- l'export **refait l'inférence** sur le serveur (une seconde analyse de la même photo, résultat identique pour un même modèle) car le serveur ne garde pas l'image ;
+- le texte de l'image exportée est en français sans accents et le nom de la classe en anglais, quelle que soit la langue de l'application (limite de la police du serveur) ; la carte l'indique à l'utilisateur ;
+- le filigrane indique la provenance, il **ne prouve pas l'authenticité** et se retire en rognant la bannière (indiqué dans la carte) ;
+- le comportement réel de la feuille de partage (enregistrer dans la galerie, messageries) dépend de l'appareil et n'a pas été exercé : les tests utilisent un service de partage simulé.
 
 ## 4 bis. Essai manuel sur un téléphone Android avec l'API du PC
 
@@ -108,8 +122,9 @@ Contrôler d'abord depuis le navigateur du téléphone : `http://192.168.1.106:8
 
 ## 5. Résultats réels
 
-- `flutter analyze` : aucun problème. `flutter test` : **121 tests réussis** (contrôleurs, clients HTTP simulés, widgets FR/AR, traductions).
+- `flutter analyze` : aucun problème. `flutter test` : **150 tests réussis** (contrôleurs, clients HTTP simulés, widgets FR/AR, traductions, export).
 - **Test d'intégration complet sur l'émulateur Android Pixel 9** avec l'API réelle, le vrai modèle, un **vrai PostgreSQL 16.2** (pgserver, éphémère, migrations Alembic appliquées) et le **vrai stockage sécurisé** : inscription depuis l'interface → analyse enregistrée (note affichée) → redémarrage simulé avec reprise de la session depuis le Keystore → historique (1 élément) → détail → suppression de l'analyse (liste vide) → suppression du compte (jeton effacé de l'appareil, connexion ensuite refusée par le serveur). Le journal de l'API confirme chaque appel (`register`, `login`, `me`, `predictions`, `analyses`, `DELETE`). Les 3 scénarios passent en environ 20 s : 3 exécutions réussies sur 3 après la correction du bouton « Supprimer », puis, avec la version finale du fichier de test, 1 exécution figée (voir limites) ; les exécutions interrompues par moi pendant une compilation Gradle lente ne comptent pas.
+- **Export (2026-11-05)** : contrôle réel depuis le client Dart contre l'API locale avec le vrai modèle (image de validation Septoria) : PNG valide reçu, en-têtes `X-Watermark` et `X-Prediction-Id` lus, avec et sans filigrane (152 351 octets contre 151 273) ; image contrôlée visuellement. Scénario d'intégration sur l'émulateur Android (touche d'export → API réelle → PNG transmis au service de partage) : réussi en 4 s ; un premier essai avait échoué parce que le bouton, sous la ligne de flottaison d'un vrai écran, n'était pas défilé dans le test (corrigé par `ensureVisible`, pas un défaut de l'application). La feuille de partage Android réelle n'a pas été exercée (service simulé dans les tests).
 - Défauts trouvés et corrigés grâce aux tests : (1) le contrôleur d'analyse n'interceptait que les `Exception` (une `StateError` laissait l'écran en chargement) ; (2) le bouton « Supprimer » du détail était désactivé pendant le rechargement en arrière-plan, ce qui bloquait une suppression sur réseau lent ; une réponse tardive pouvait en outre « ressusciter » une analyse supprimée (test de non-régression ajouté) ; (3) l'e-mail de test en `.test` est refusé par la validation de l'API (domaine réservé), le test utilise `example.com`.
 - Un test a révélé un défaut corrigé : le contrôleur n'interceptait que les `Exception` ; une erreur inattendue (`StateError`, `TypeError`) aurait laissé l'écran en chargement. Il intercepte désormais toute erreur.
 - Test d'intégration sur **émulateur Android Pixel 9 (API 37, x86_64)**, réseau réel vers l'API locale avec le vrai modèle MobileNetV2 : 2 tests réussis (image valide → résultat ou incertain avec avertissements ; API injoignable → message réseau et bouton Réessayer). Le journal de l'API confirme `POST /api/v1/predictions … 200`. L'image utilisée est **synthétique** : ce test valide le contrat et l'affichage, pas la justesse du diagnostic.
@@ -126,5 +141,6 @@ Contrôler d'abord depuis le navigateur du téléphone : `http://192.168.1.106:8
 - Le libellé du bouton « Choisir dans la galerie » passe sur deux lignes en français sur un écran étroit.
 - **Test d'intégration intermittent sur l'émulateur** : sur une quinzaine d'exécutions, environ 4 se sont figées à des étapes différentes (historique, suppression), sans erreur applicative ni requête manquante côté serveur, parfois suivies de la disparition de l'émulateur. Cause non démontrée : l'image d'émulateur (Android 17 préversion, pages de 16 Ko) boucle sur un plantage du composant NFC (`SIGABRT` toutes les 5 s dans `logcat`) et la machine était presque saturée en mémoire (0,9 à 1,9 Go libres). La logique est vérifiée par les 121 tests locaux et par les exécutions réussies, mais ce test d'intégration ne doit pas encore servir d'intégration continue ; à rejouer sur un émulateur stable ou un vrai téléphone.
 - Le stockage sécurisé n'a été exercé que sur émulateur ; son comportement après restauration de sauvegarde ou changement d'écran de verrouillage n'est pas testé (le jeton illisible est traité comme « déconnecté »).
+- L'export dépend de la connexion et refait l'inférence sur le serveur (pas d'export hors ligne) ; le texte de l'image exportée n'est pas traduit (français sans accents, classe en anglais).
 - Pas de mise en cache de l'historique : hors ligne, la liste affiche l'erreur réseau avec « Réessayer ».
 - L'identité (e-mail) est visible dans le menu du compte ; l'application ne propose ni changement d'e-mail ni de mot de passe.

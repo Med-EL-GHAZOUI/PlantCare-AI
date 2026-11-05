@@ -8,6 +8,7 @@
 // L'image est synthétique (aucune donnée PlantVillage) : on vérifie le contrat, la persistance et
 // l'affichage, pas la justesse du diagnostic. Le compte de test est créé puis supprimé par le test.
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:agriscan_mobile/app.dart';
 import 'package:agriscan_mobile/app_services.dart';
@@ -17,6 +18,7 @@ import 'package:agriscan_mobile/data/models.dart';
 import 'package:agriscan_mobile/data/prediction_api.dart';
 import 'package:agriscan_mobile/data/token_store.dart';
 import 'package:agriscan_mobile/l10n/app_localizations_fr.dart';
+import 'package:agriscan_mobile/logic/image_share_service.dart';
 import 'package:agriscan_mobile/logic/image_source_service.dart';
 import 'package:agriscan_mobile/logic/locale_controller.dart';
 import 'package:flutter/material.dart';
@@ -32,13 +34,27 @@ class _FixedImageSource implements ImageSourceService {
       PickedImage(bytes: base64Decode(_leafJpegBase64), name: 'feuille_synthetique.jpg');
 }
 
-AppServices _services(String baseUrl, TokenStore store) => AppServices.assemble(
-      accountApi: HttpAccountApi(baseUrl: baseUrl, timeout: const Duration(seconds: 20)),
-      predictionApi: HttpPredictionApi(baseUrl: baseUrl, timeout: const Duration(seconds: 20)),
-      tokenStore: store,
-      imageSource: _FixedImageSource(),
-      locale: LocaleController(const Locale('fr')),
-    );
+class _CapturingShare implements ImageShareService {
+  final List<Uint8List> shared = [];
+
+  @override
+  Future<void> shareImage(Uint8List bytes, {required String filename, required String text}) async {
+    shared.add(bytes);
+  }
+}
+
+AppServices _services(String baseUrl, TokenStore store, {ImageShareService? share}) {
+  final predictionApi = HttpPredictionApi(baseUrl: baseUrl, timeout: const Duration(seconds: 20));
+  return AppServices.assemble(
+    accountApi: HttpAccountApi(baseUrl: baseUrl, timeout: const Duration(seconds: 20)),
+    predictionApi: predictionApi,
+    exportApi: predictionApi,
+    imageShare: share ?? _CapturingShare(),
+    tokenStore: store,
+    imageSource: _FixedImageSource(),
+    locale: LocaleController(const Locale('fr')),
+  );
+}
 
 Future<void> _pump(WidgetTester tester, AppServices services) async {
   await tester.pumpWidget(AgriScanApp(services: services));
@@ -86,6 +102,24 @@ void main() {
     expect(hasResult || isUncertain, isTrue);
     expect(find.byKey(const Key('error_card')), findsNothing);
     expect(find.byKey(const Key('saved_note')), findsNothing);
+  });
+
+  testWidgets("API réelle : export de l'image annotée (PNG) partagé via le service de partage", (tester) async {
+    final share = _CapturingShare();
+    await _pump(tester, _services(AppConfig.apiBaseUrl, SecureTokenStore()..clear(), share: share));
+    await tester.tap(find.byKey(const Key('gallery_button')));
+    await _waitFor(tester, find.byKey(const Key('export_button')));
+    await tester.ensureVisible(find.byKey(const Key('export_button'))); // sous la ligne de flottaison sur un vrai écran
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('export_button')));
+    final end = DateTime.now().add(const Duration(seconds: 60));
+    while (share.shared.isEmpty && DateTime.now().isBefore(end)) {
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+    expect(share.shared, hasLength(1));
+    expect(share.shared.single.sublist(0, 8), [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]); // signature PNG
+    expect(share.shared.single.length, greaterThan(base64Decode(_leafJpegBase64).length ~/ 2));
+    expect(find.byKey(const Key('error_card')), findsNothing);
   });
 
   testWidgets('API injoignable : message réseau et bouton Réessayer', (tester) async {

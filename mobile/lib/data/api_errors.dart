@@ -18,6 +18,7 @@ enum FailureKind {
   server,
   invalidResponse,
   pickFailed,
+  shareFailed,
   unauthorized,
   invalidCredentials,
   emailTaken,
