@@ -23,6 +23,7 @@ AgriScan AI analyse une image de feuille et prédit une classe parmi celles pris
 - [Hooks de développement](docs/DEV_HOOKS.md)
 - [Filigrane des sorties générées](docs/WATERMARK.md)
 - [Validation terrain](docs/FIELD_VALIDATION.md)
+- [Organisation des branches Git](docs/BRANCHING.md)
 
 ### Machine Learning
 - [Documentation du dataset](docs/DATASET_CARD.md)
