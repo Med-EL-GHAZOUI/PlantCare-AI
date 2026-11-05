@@ -200,6 +200,8 @@ Lecture prudente : ces chiffres proviennent d'une seule exécution, de la valida
 
 ## 7. Incertitude et limites
 
+**Évaluation externe (photos de terrain) : non réalisée à ce jour.** Aucune performance hors PlantVillage n'est connue ; protocole et outils : [FIELD_VALIDATION.md](FIELD_VALIDATION.md).
+
 Le score de sortie du modèle peut ne pas être une probabilité calibrée. Tout seuil d'incertitude doit être choisi à partir des données de validation et évalué.
 
 Une classification standard peut attribuer une classe connue à une image hors périmètre. Le rejet des images inconnues nécessite une méthode explicite et une évaluation dédiée ; un seuil de confiance seul ne garantit pas la détection de toutes les images hors distribution.

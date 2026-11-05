@@ -1,0 +1,3 @@
+path,label,subject_id,split,site,capture_date,device,lighting,background,labeler,labeler_expertise,label_certainty,consent,source
+EXEMPLE_NE_PAS_UTILISER_1.jpg,Tomato___Late_blight,plante-001,dev,serre-A,2026-11-20,telephone-X,shade,plain,expert-1,agronomist,certain,yes,photos prises par l'equipe avec accord de l'exploitant
+EXEMPLE_NE_PAS_UTILISER_2.jpg,out_of_scope,plante-002,test,serre-A,2026-11-20,telephone-X,full_sun,foliage,expert-1,agronomist,certain,yes,feuille de poivron (autre culture)

@@ -104,6 +104,8 @@
 - Limites clairement décrites.
 - Décision documentée sur les corrections nécessaires.
 
+**État (2026-11-05)** : protocole, outillage de contrôle et d'évaluation et modèles de documents prêts ([FIELD_VALIDATION.md](FIELD_VALIDATION.md)) ; **collecte et rapport non réalisés**.
+
 ## Phase 8 — Déploiement
 
 **Travail**
