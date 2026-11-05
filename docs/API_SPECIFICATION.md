@@ -100,6 +100,10 @@ python -m venv .venv; .\.venv\Scripts\python.exe -m pip install -r requirements-
 ```
 Configuration : `backend/.env.example`. La documentation interactive est disponible sur `/docs`.
 
+## 4 ter. Export d'image annotée avec filigrane optionnel (2026-11-05)
+
+`POST /api/v1/predictions/annotated-image` (multipart, champ `image`, paramètre optionnel `watermark=true|false`) : mêmes contrôles d'entrée que `/predictions`, inférence sur l'image d'origine, puis image PNG annotée (légende + filigrane dans une bannière) renvoyée sans rien stocker. En-têtes : `X-Prediction-Id`, `X-Watermark`, `Cache-Control: no-store`. Détails, réglages `AGRISCAN_WATERMARK_*` et limites (un filigrane visible ne prouve pas l'authenticité) : [WATERMARK.md](WATERMARK.md).
+
 ## 5. Historique protégé
 
 ### `GET /api/v1/analyses`

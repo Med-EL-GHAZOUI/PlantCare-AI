@@ -59,3 +59,18 @@ def test_endpoint_with_real_model_end_to_end(real_service) -> None:
     assert body["predicted_class"] in info["supported_classes"]
     assert len(info["supported_classes"]) == 10
     assert sum(body["scores"].values()) == pytest.approx(1.0, abs=1e-3)
+
+
+def test_annotated_export_with_real_model_keeps_the_leaf_intact(real_service) -> None:
+    import io
+
+    path = sample_paths(1)[0]
+    content = path.read_bytes()
+    with TestClient(create_app(Settings(_env_file=None), model_service=real_service)) as client:
+        response = client.post("/api/v1/predictions/annotated-image", files={"image": ("leaf.jpg", content, "image/jpeg")})
+    assert response.status_code == 200 and response.headers["content-type"] == "image/png"
+    exported = np.asarray(Image.open(io.BytesIO(response.content)).convert("RGB"))
+    original = np.asarray(Image.open(path).convert("RGB"))
+    height, width = original.shape[:2]
+    offset = (exported.shape[1] - width) // 2
+    assert np.array_equal(exported[:height, offset:offset + width], original)  # feuille inchangée

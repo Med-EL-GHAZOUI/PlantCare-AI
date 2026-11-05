@@ -12,9 +12,10 @@ from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
-from app import auth, history
+from app import auth, exports, history
 from app.config import Settings
 from app.db import create_session_factory
+from app.decision import decide
 from app.errors import ApiError, register_error_handlers
 from app.image_validation import decode_image
 from app.inference import PREPROCESSING_SUMMARY, PREPROCESSING_VERSION, ModelService, load_model_service
@@ -109,9 +110,7 @@ def create_prediction(
 ) -> PredictionResponse:
     rgb = decode_image(image, settings)
     result = service.predict(rgb)
-    uncertain = settings.confidence_threshold is not None and result.top_score < settings.confidence_threshold
-    status = "uncertain" if uncertain else "prediction_available"
-    predicted = None if uncertain else result.top_class
+    status, predicted = decide(result.top_class, result.top_score, settings.confidence_threshold)
     if user is not None:  # utilisateur authentifié : l'analyse est ajoutée à son historique
         store_analysis(request.app.state.session_factory, user, service, result, status, predicted)
     return PredictionResponse(
@@ -141,11 +140,13 @@ def create_app(settings: Settings | None = None, model_service: ModelService | N
     app.state.model_service = None
     app.state.session_factory = database[1] if database else None
     app.state.login_throttle = LoginThrottle(settings.login_max_failures, settings.login_window_seconds)
+    app.state.watermark_config = exports.watermark_config(settings)  # échoue au démarrage si incohérent
     register_error_handlers(app)
     if settings.cors_origins:
         app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=["GET", "POST"],
                            allow_headers=["*"])
     app.include_router(router)
+    app.include_router(exports.router)
     app.include_router(auth.router)
     app.include_router(history.router)
     return app

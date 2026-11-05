@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -31,6 +32,15 @@ class Settings(BaseSettings):
     access_token_minutes: int = Field(default=30, gt=0, le=1440)
     login_max_failures: int = Field(default=5, gt=0)
     login_window_seconds: int = Field(default=900, gt=0)
+
+    # Filigrane des images annotées exportées (jamais appliqué avant l'inférence ni à l'image d'origine).
+    watermark_enabled: bool = True
+    watermark_text: str = Field(default="AgriScan AI", min_length=1, max_length=40)
+    watermark_position: Literal["bottom-right", "bottom-left", "top-right", "top-left"] = "bottom-right"
+    watermark_opacity: float = Field(default=0.6, ge=0.0, le=1.0)
+    watermark_size_ratio: float = Field(default=0.04, gt=0.0, le=0.2)
+    watermark_margin_ratio: float = Field(default=0.02, ge=0.0, le=0.1)
+    export_max_side: int = Field(default=1024, ge=64, le=4096)
 
     @field_validator("jwt_secret")
     @classmethod
