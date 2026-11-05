@@ -1,0 +1,24 @@
+# Règles Markdown d'AgriScan AI. Les documents sont en français, avec de longues lignes de prose,
+# des tableaux et des blocs de code : on garde les règles de structure (titres, listes, blocs de code)
+# et on désactive les règles purement cosmétiques (lignes vides, style de tableau) qui produisaient
+# ~170 avertissements sur les documents existants sans signaler de vrai défaut.
+config:
+  default: true
+  MD012: false   # lignes vides multiples
+  MD013: false   # longueur de ligne
+  MD022: false   # lignes vides autour des titres
+  MD024:
+    siblings_only: true   # titres identiques autorisés sous des parents différents
+  MD025: false   # plusieurs titres de niveau 1 (AGENTS.md concatène des sections)
+  MD031: false   # lignes vides autour des blocs de code
+  MD032: false   # lignes vides autour des listes
+  MD033: false   # HTML en ligne
+  MD034: false   # URL nues
+  MD036: false   # emphase utilisée comme titre
+  MD041: false   # première ligne = titre de niveau 1
+  MD060: false   # style des colonnes de tableau
+ignores:
+  - node_modules
+  - "**/.venv/**"
+  - ".obsidian/**"
+  - "mobile/build/**"

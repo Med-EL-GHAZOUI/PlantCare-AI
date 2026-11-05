@@ -20,6 +20,7 @@ AgriScan AI analyse une image de feuille et prédit une classe parmi celles pris
 - [Spécification de l'API](docs/API_SPECIFICATION.md)
 - [Application mobile Flutter](docs/MOBILE.md)
 - [Sécurité et confidentialité](docs/SECURITY.md)
+- [Hooks de développement](docs/DEV_HOOKS.md)
 
 ### Machine Learning
 - [Documentation du dataset](docs/DATASET_CARD.md)
